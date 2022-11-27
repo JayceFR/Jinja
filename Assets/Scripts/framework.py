@@ -5,11 +5,12 @@ class Player():
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.speed = 5
         self.acceleration = 0.05
-        self.deceleration = 0.05
+        self.deceleration = 0.5
         self.gravity = 9.81
         self.moving_right = False
         self.moving_left = False
-        self.was_moving = False
+        self.was_moving_right = False
+        self.was_moving_left = False
         self.display_x = 0
         self.display_y = 0
 
@@ -52,14 +53,26 @@ class Player():
         self.movement = [0,0]
         self.movement[1] += self.gravity
         if not self.moving_left and not self.moving_right:
-            self.speed = 5
+            if self.was_moving_right:
+                self.speed -= self.deceleration
+                self.movement[0] += self.speed
+                if self.speed <= 5:
+                    self.was_moving_right = False
+            if self.was_moving_left:
+                self.speed -= self.deceleration
+                self.movement[1] -= self.speed
+                if self.speed <= 5:
+                    self.speed = 5
+                    self.was_moving_left = False
         if self.moving_right:
             self.movement[0] += self.speed
+            self.was_moving_right = True
             if self.speed < 8:
                 self.speed += self.acceleration
             self.moving_right = not self.moving_right
         if self.moving_left:
             self.movement[0] -= self.speed
+            self.was_moving_left = True
             if self.speed < 8:
                 self.speed += self.acceleration
             self.moving_left = not self.moving_left
