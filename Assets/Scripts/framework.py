@@ -9,6 +9,10 @@ class Player():
         self.gravity = 9.81
         self.moving_right = False
         self.moving_left = False
+        self.jump = False
+        self.jump_frame = 0
+        self.jump_cooldown = 500
+        self.jump_last_update = 0
         self.was_moving_right = False
         self.was_moving_left = False
         self.display_x = 0
@@ -43,15 +47,30 @@ class Player():
                 collision_types["top"] = True
         return collision_types
 
-    def move(self, tiles):
+    def move(self, tiles, time):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             self.moving_left = True
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.moving_right = True
+        if keys[pygame.K_SPACE] or keys[pygame.K_w]:
+            if time - self.jump_last_update > self.jump_cooldown:
+                self.jump = True
+                self.jump_last_update = time
     
         self.movement = [0,0]
-        self.movement[1] += self.gravity
+        if self.jump:
+            if self.jump_frame < 5:
+                self.jump_frame += 0.8
+                self.movement[1] -= 10
+            else:
+                self.jump = False
+        if not self.jump:
+            if self.jump_frame > 0:
+                self.movement[1] += 10
+                self.jump_frame -= 0.8
+            else:
+                self.movement[1] += self.gravity
         if not self.moving_left and not self.moving_right:
             if self.was_moving_right:
                 self.speed -= self.deceleration
@@ -95,10 +114,9 @@ class Player():
 
 #Map
 class Map():
-    def __init__(self, map_loc, tile1, tile2):
+    def __init__(self, map_loc, tiles):
         self.map = [] 
-        self.tile1 = tile1
-        self.tile2 = tile2
+        self.tiles = tiles
         f = open(map_loc, "r")
         data = f.read()
         f.close()
@@ -114,9 +132,17 @@ class Map():
             x = 0 
             for element in row:
                 if element == "1":
-                    window.blit(self.tile1, (x * 16 - scroll[0], y * 16 - scroll[1]) )
+                    window.blit(self.tiles[0], (x * 16 - scroll[0], y * 16 - scroll[1]) )
                 if element == "2":
-                    window.blit(self.tile2, (x * 16 - scroll[0], y * 16 - scroll[1]))
+                    window.blit(self.tiles[1], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                if element == "3":
+                    window.blit(self.tiles[2], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                if element == "4":
+                    window.blit(self.tiles[3], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                if element == "5":
+                    window.blit(self.tiles[4], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                if element == "6":
+                    window.blit(self.tiles[5], (x * 16 - scroll[0], y * 16 - scroll[1]))
                 if element != "0":
                     tile_rects.append(pygame.rect.Rect(x*16, y*16, 16,16))
                 x += 1
