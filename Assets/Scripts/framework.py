@@ -132,19 +132,19 @@ class Map():
             x = 0 
             for element in row:
                 if element == "1":
-                    window.blit(self.tiles[0], (x * 16 - scroll[0], y * 16 - scroll[1]) )
+                    window.blit(self.tiles[0], (x * 32 - scroll[0], y * 32 - scroll[1]) )
                 if element == "2":
-                    window.blit(self.tiles[1], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                    window.blit(self.tiles[1], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element == "3":
-                    window.blit(self.tiles[2], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                    window.blit(self.tiles[2], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element == "4":
-                    window.blit(self.tiles[3], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                    window.blit(self.tiles[3], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element == "5":
-                    window.blit(self.tiles[4], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                    window.blit(self.tiles[4], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element == "6":
-                    window.blit(self.tiles[5], (x * 16 - scroll[0], y * 16 - scroll[1]))
+                    window.blit(self.tiles[5], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element != "0":
-                    tile_rects.append(pygame.rect.Rect(x*16, y*16, 16,16))
+                    tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
         return tile_rects
