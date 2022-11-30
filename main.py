@@ -1,5 +1,6 @@
 import pygame
 import Assets.Scripts.framework as framework
+import Assets.Scripts.background as backg
 import math
 pygame.init()
 s_width = 1000
@@ -29,10 +30,13 @@ dash_last_update = 0
 #Scroll
 true_scroll = [0,0]
 scroll = [0,0]
+#Background Stripes 
+bg = backg.background()
 while run:
     clock.tick(60)
     time = pygame.time.get_ticks()
-    display.fill((0,0,0))
+    display.fill((139,0,139))
+    bg.recursive_call(display)
     #Blitting The Map
     tile_rects = map.blit_map(display, scroll)
     #Calculating scroll
