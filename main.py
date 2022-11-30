@@ -1,5 +1,6 @@
 import pygame
 import Assets.Scripts.framework as framework
+import math
 pygame.init()
 s_width = 1000
 s_height = 600
@@ -22,6 +23,9 @@ tiles = [tile_1, tile_2, tile_3, tile_4, tile_5, tile_6]
 map = framework.Map("./Assets/Maps/map.txt", tiles)
 #Player 
 player = framework.Player(50,50,16,16)
+dash = False
+dash_cooldown = 2000
+dash_last_update = 0 
 #Scroll
 true_scroll = [0,0]
 scroll = [0,0]
@@ -37,6 +41,27 @@ while run:
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
     scroll[1] = int(scroll[1])
+    #Player Dash
+    if dash:
+        #Getting the mouse position
+        mx , my = pygame.mouse.get_pos()
+        mx = mx/2
+        my = my/2
+        m_pos = []
+        m_pos.append(mx)
+        m_pos.append(my)
+        #Getting the 3rd vertex of the triangle
+        point = (m_pos[0], player.get_rect().y + 16 - scroll[1])
+        #Calculating distance between the points
+        l1 = math.sqrt(math.pow((point[1] - (player.get_rect().y + 16 - scroll[1])), 2) + math.pow((point[0] - (player.get_rect().x + 20 - scroll[0])), 2))
+        l2 = math.sqrt(math.pow((m_pos[1] - point[1]),2) + math.pow((m_pos[0] - point[0]),2))
+        #Calculating the angle between them
+        angle = math.atan2(l2,l1)
+        angle = math.degrees(angle)
+        #pygame.draw.line(display,(255,0,0), m_pos, point)
+        #pygame.draw.line(display, (255,0,255), point, ((player.get_rect().x + 20 - scroll[0]), (player.get_rect().y + 16 - scroll[1])))
+        player.dash(angle, m_pos, scroll, time)
+        dash = not dash
     #Moving the Player
     player.move(tile_rects, time)
     #Drawing the Player
@@ -44,6 +69,11 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 3:
+                if time - dash_last_update > dash_cooldown:
+                    dash = True
+                    dash_last_update = time 
     surf = pygame.transform.scale(display, (s_width, s_height))
     screen.blit(surf, (0,0))
     pygame.display.update()

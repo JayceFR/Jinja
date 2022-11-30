@@ -1,4 +1,5 @@
 import pygame
+import math
 
 class Player():
     def __init__(self,x, y, width, height):
@@ -6,17 +7,22 @@ class Player():
         self.speed = 5
         self.acceleration = 0.05
         self.deceleration = 0.5
-        self.gravity = 9.81
+        self.gravity = 3
         self.moving_right = False
         self.moving_left = False
         self.jump = False
         self.jump_frame = 0
-        self.jump_cooldown = 500
+        self.jump_cooldown = 200
         self.jump_last_update = 0
         self.was_moving_right = False
         self.was_moving_left = False
         self.display_x = 0
         self.display_y = 0
+        self.is_dash = False
+        self.dash_cooldown = 100
+        self.dash_last_update = 0
+        self.dash_angle = 0
+        self.collision_type = {}
 
     def collision_test(self, tiles):
         hitlist = []
@@ -54,11 +60,17 @@ class Player():
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.moving_right = True
         if keys[pygame.K_SPACE] or keys[pygame.K_w]:
-            if time - self.jump_last_update > self.jump_cooldown:
-                self.jump = True
-                self.jump_last_update = time
-    
+            if self.collision_type['bottom']:
+                if time - self.jump_last_update > self.jump_cooldown:
+                    self.jump = True
+                    self.jump_last_update = time
         self.movement = [0,0]
+        if self.is_dash:
+            self.movement[0] += math.cos(math.radians(self.dash_angle)) * 30
+            self.movement[1] -= math.sin(math.radians(self.dash_angle)) * 30
+            if time - self.dash_last_update > self.dash_cooldown:
+                self.is_dash = False
+                self.dash_last_update = time
         if self.jump:
             if self.jump_frame < 5:
                 self.jump_frame += 0.8
@@ -70,7 +82,8 @@ class Player():
                 self.movement[1] += 10
                 self.jump_frame -= 0.8
             else:
-                self.movement[1] += self.gravity
+                if not self.is_dash:
+                    self.movement[1] += self.gravity
         if not self.moving_left and not self.moving_right:
             if self.was_moving_right:
                 self.speed -= self.deceleration
@@ -95,10 +108,8 @@ class Player():
             if self.speed < 8:
                 self.speed += self.acceleration
             self.moving_left = not self.moving_left
-        
 
-        collision_type = self.collision_checker(tiles)
-        
+        self.collision_type = self.collision_checker(tiles)
 
     def draw(self, display, scroll):
         self.display_x = self.rect.x
@@ -108,6 +119,26 @@ class Player():
         pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
+    
+    def dash(self, angle, m_pos, scroll, time):
+        if self.rect.y - scroll[1] > m_pos[1]:
+            #The vampire is bottom of the player 
+            if self.rect.x - scroll[0] > m_pos[0]:
+                #The vampire is to the right 
+                self.facing_right = False
+                angle = 180 - angle
+        else:
+            #The vampire is top of the player 
+            if self.rect.x - scroll[0] > m_pos[0]:
+                #The vampire is to the top right 
+                self.facing_right = False
+                angle = 180 + angle
+            else:
+                #The vampire is to the top left
+                angle = 360 - angle
+        self.is_dash = True
+        self.dash_last_update = time
+        self.dash_angle = angle
     
     def get_rect(self):
         return self.rect
