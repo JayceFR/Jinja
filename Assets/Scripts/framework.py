@@ -2,7 +2,7 @@ import pygame
 import math
 
 class Player():
-    def __init__(self,x, y, width, height):
+    def __init__(self,x, y, width, height, image):
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.speed = 5
         self.acceleration = 0.05
@@ -23,6 +23,7 @@ class Player():
         self.dash_last_update = 0
         self.dash_angle = 0
         self.collision_type = {}
+        self.player_img = image
 
     def collision_test(self, tiles):
         hitlist = []
@@ -116,7 +117,8 @@ class Player():
         self.display_y = self.rect.y
         self.rect.x -= scroll[0]
         self.rect.y -= scroll[1]
-        pygame.draw.rect(display, (255,0,0), self.rect)
+        display.blit(self.player_img, self.rect)
+        #pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
     

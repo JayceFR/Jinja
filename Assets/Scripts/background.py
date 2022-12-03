@@ -2,7 +2,7 @@ import pygame
 import math
 import json
 
-f = open("./Assets/Scripts/bg_coordinates.json", "r")
+f = open("./Assets/Data/bg_coordinates.json", "r")
 y = f.read()
 f.close()
 class background():

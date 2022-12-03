@@ -21,10 +21,12 @@ tile_5 = tile_4.copy()
 tile_5 = pygame.transform.flip(tile_5, True, False)
 tile_6 = pygame.image.load("./Assets/Tiles/tile5.png").convert_alpha()
 tiles = [tile_1, tile_2, tile_3, tile_4, tile_5, tile_6]
+player_img = pygame.image.load("./Assets/Sprites/player.png").convert_alpha()
+player_img.set_colorkey((255,255,255))
 #Map
 map = framework.Map("./Assets/Maps/map.txt", tiles)
 #Player 
-player = framework.Player(50,50,16,16)
+player = framework.Player(50,50,player_img.get_width(),player_img.get_height(), player_img)
 dash = False
 extra_dash = True
 check_for_dash = True
