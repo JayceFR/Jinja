@@ -2,6 +2,7 @@ import pygame
 import Assets.Scripts.framework as framework
 import Assets.Scripts.background as backg
 import math
+import random 
 pygame.init()
 s_width = 1000
 s_height = 600
@@ -35,8 +36,11 @@ bg = backg.background()
 while run:
     clock.tick(60)
     time = pygame.time.get_ticks()
-    display.fill((139,0,139))
-    bg.recursive_call(display)
+    display.fill((20,0,20))
+    blur_surf = display.copy()
+    bg.recursive_call(blur_surf)
+    blur_surf.set_alpha(90)
+    display.blit(blur_surf, (0,0))
     #Blitting The Map
     tile_rects = map.blit_map(display, scroll)
     #Calculating scroll

@@ -5,7 +5,6 @@ import json
 f = open("./Assets/Scripts/bg_coordinates.json", "r")
 y = f.read()
 f.close()
-print(y)
 class background():
     def __init__(self) -> None:
         self.coordinates = json.loads(y)['coordinates']
