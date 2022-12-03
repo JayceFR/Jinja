@@ -120,6 +120,12 @@ class Player():
         self.rect.x = self.display_x
         self.rect.y = self.display_y
     
+    def chech_for_dash(self):
+        if self.collision_type['top'] or self.collision_type['bottom'] or self.collision_type['right'] or self.collision_type['left']:
+            return True
+        else:
+            return False
+    
     def dash(self, angle, m_pos, scroll, time):
         if self.rect.y - scroll[1] > m_pos[1]:
             #The vampire is bottom of the player 

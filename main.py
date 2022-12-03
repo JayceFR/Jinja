@@ -26,8 +26,8 @@ map = framework.Map("./Assets/Maps/map.txt", tiles)
 #Player 
 player = framework.Player(50,50,16,16)
 dash = False
-dash_cooldown = 2000
-dash_last_update = 0 
+extra_dash = True
+check_for_dash = True
 #Scroll
 true_scroll = [0,0]
 scroll = [0,0]
@@ -74,14 +74,20 @@ while run:
     player.move(tile_rects, time)
     #Drawing the Player
     player.draw(display, scroll)
+    #Checkiung for Player Dash
+    if not extra_dash:
+        extra_dash = player.chech_for_dash()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 3:
-                if time - dash_last_update > dash_cooldown:
+                if player.chech_for_dash() == True:
                     dash = True
-                    dash_last_update = time 
+                else:
+                    if extra_dash:
+                        dash = True
+                        extra_dash = False
     surf = pygame.transform.scale(display, (s_width, s_height))
     screen.blit(surf, (0,0))
     pygame.display.update()
