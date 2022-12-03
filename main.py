@@ -1,6 +1,7 @@
 import pygame
 import Assets.Scripts.framework as framework
 import Assets.Scripts.background as backg
+import Assets.Scripts.bg_particles as bg_particles
 import math
 import random 
 pygame.init()
@@ -35,6 +36,7 @@ true_scroll = [0,0]
 scroll = [0,0]
 #Background Stripes 
 bg = backg.background()
+bg_particle_effect = bg_particles.Master()
 while run:
     clock.tick(60)
     time = pygame.time.get_ticks()
@@ -76,6 +78,8 @@ while run:
     player.move(tile_rects, time)
     #Drawing the Player
     player.draw(display, scroll)
+    #Background Particles
+    bg_particle_effect.recursive_call(time, display)
     #Checkiung for Player Dash
     if not extra_dash:
         extra_dash = player.chech_for_dash()
