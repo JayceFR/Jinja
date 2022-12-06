@@ -50,7 +50,7 @@ class Particles():
     def draw(self, display):
         pygame.draw.circle(display, (255, 255, 255), (self.x, self.y), self.radius)
         self.radius *= 2
-        display.blit(self.circle_surf(), (int(self.x- self.radius), int(self.y - self.radius)), special_flags=BLEND_RGB_ADD)
+        display.blit(self.circle_surf(), (int(self.x- self.radius), int(self.y - self.radius)), special_flags=BLEND_RGBA_ADD)
         self.radius /= 2
     
     def circle_surf(self):
