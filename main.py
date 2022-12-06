@@ -4,6 +4,7 @@ import Assets.Scripts.background as backg
 import Assets.Scripts.bg_particles as bg_particles
 import math
 import random 
+from pygame.locals import *
 pygame.init()
 s_width = 1000
 s_height = 600

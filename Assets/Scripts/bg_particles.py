@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-
+from pygame.locals import *
 
 class Master():
     def __init__(self) -> None:
@@ -34,6 +34,7 @@ class Particles():
         self.angle = random.randint(0,360)
         self.angle_change_cooldown = 100
         self.angel_change_last_update = 0
+        self.radius = 3
     
     def move(self, time):
         if time - self.angel_change_last_update > self.angle_change_cooldown:
@@ -47,4 +48,13 @@ class Particles():
             self.alive = False
 
     def draw(self, display):
-        pygame.draw.circle(display, (120,0,0), (self.x, self.y), 3)
+        pygame.draw.circle(display, (255, 255, 255), (self.x, self.y), self.radius)
+        self.radius *= 2
+        display.blit(self.circle_surf(), (int(self.x- self.radius), int(self.y - self.radius)), special_flags=BLEND_RGB_ADD)
+        self.radius /= 2
+    
+    def circle_surf(self):
+        surf = pygame.Surface((self.radius * 2, self.radius * 2))
+        pygame.draw.circle(surf, (20, 20, 60), (self.radius, self.radius), self.radius)
+        surf.set_colorkey((0, 0, 0))
+        return surf
