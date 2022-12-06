@@ -6,7 +6,7 @@ import random
 class Master():
     def __init__(self) -> None:
         self.particles = []
-        self.particle_generation_cooldown = 100
+        self.particle_generation_cooldown = 2000
         self.particle_generation_last_update = 0
 
     def add_particles(self):
@@ -31,10 +31,18 @@ class Particles():
         self.speed = speed
         self.gravity = 5
         self.alive = True
+        self.angle = random.randint(0,360)
+        self.angle_change_cooldown = 100
+        self.angel_change_last_update = 0
     
     def move(self, time):
-        self.x += math.sin(time) + 5
-        self.y += self.gravity
+        if time - self.angel_change_last_update > self.angle_change_cooldown:
+            self.angel_change_last_update = time
+            self.angle += random.randint(0,10)
+            if self.angle > 360:
+                self.angle = 0  
+        self.x += math.sin(math.radians(self.angle))
+        self.y += 0.5
         if self.x > 1000 or self.y > 600:
             self.alive = False
 
