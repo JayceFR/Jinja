@@ -2,6 +2,7 @@ import pygame
 import Assets.Scripts.framework as framework
 import Assets.Scripts.background as backg
 import Assets.Scripts.bg_particles as bg_particles
+import Assets.Scripts.flame as flames
 import math
 import random 
 from pygame.locals import *
@@ -38,6 +39,8 @@ scroll = [0,0]
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()
+#Flame 
+flame = flames.Flame(90,200)
 while run:
     clock.tick(60)
     time = pygame.time.get_ticks()
@@ -54,6 +57,7 @@ while run:
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
     scroll[1] = int(scroll[1])
+    #flame.draw(display)
     #Player Dash
     if dash:
         #Getting the mouse position
