@@ -15,7 +15,7 @@ class Flame():
         return surf
 
     def draw(self, display):
-        pygame.draw.circle(display, (255,128,0), (self.x, self.y), self.radius)
+        #pygame.draw.circle(display, (255,128,0), (self.x, self.y), self.radius)
         self.radius *= 6
         display.blit(self.generate_surf(), (int(self.x - self.radius), int(self.y - self.radius)), special_flags=BLEND_RGBA_ADD)
         self.radius /= 6
