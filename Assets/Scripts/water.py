@@ -41,7 +41,7 @@ class Molecule():
         self.y = y
         self.colliding = False
         self.energy_transfer = False
-        self.tension = y - 50
+        self.tension = y - 10
         self.angle = 0
         self.original_stage = y
     
@@ -49,6 +49,7 @@ class Molecule():
         if self.colliding:
             self.y -= math.sin(math.radians(self.angle)) * 50
             self.angle = 50
+            self.angle += 5
             if self.angle > 360:
                 self.angle = 0
             if self.y < self.tension:
@@ -57,11 +58,10 @@ class Molecule():
         if not self.colliding:
             self.angle = 0
             if self.y < self.original_stage:
-                self.y += 5
+                self.y += 0.6
     
     def draw(self, display):
-        pass
-        #pygame.draw.circle(display, (255,255,255), (self.x, self.y), 5)
+        pygame.draw.circle(display, (0,0,150), (self.x, self.y), 5)
     
     def get_x(self):
         return self.x
