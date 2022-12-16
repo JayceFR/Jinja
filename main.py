@@ -81,7 +81,7 @@ while run:
     #Drawing the Player
     player.draw(display, scroll)
     #Background Particles
-    bg_particle_effect.recursive_call(time, display)
+    bg_particle_effect.recursive_call(time, display, scroll)
     #Checkiung for Player Dash
     if not extra_dash:
         extra_dash = player.chech_for_dash()
