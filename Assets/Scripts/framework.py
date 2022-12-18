@@ -194,8 +194,14 @@ class Drones():
         self.display_x = 0
         self.display_y = 0
     
-    def move(self, angle, scroll, player):
-        pass
+    def move(self, scroll, player, display):
+        point = (player.get_rect().x, self.rect.y)
+        pygame.draw.line(display, (255,0,0), (self.rect.x-scroll[0], self.rect.y-scroll[1]), (point[0] - scroll[0], point[1] - scroll[1]))
+        pygame.draw.line(display, (255,255,0), (point[0] - scroll[0], point[1] - scroll[1]), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
+        l1 = math.sqrt(math.pow((point[0] - self.rect.x), 2) + math.pow((point[1] - self.rect.y), 2))
+        l2 = math.sqrt(math.pow((player.get_rect().x - point[0]), 2) + math.pow((player.get_rect().y - point[1]), 2))
+        angle = math.degrees(math.atan2(l2, l1))
+        print(angle)
 
     def draw(self, display, scroll):
         self.display_x = self.rect.x
