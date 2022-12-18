@@ -6,7 +6,7 @@ from pygame.locals import *
 class Master():
     def __init__(self) -> None:
         self.particles = []
-        self.particle_generation_cooldown = 200
+        self.particle_generation_cooldown = 20
         self.particle_generation_last_update = 0
 
     def add_particles(self):
@@ -34,7 +34,7 @@ class Particles():
         self.angle = random.randint(0,360)
         self.angle_change_cooldown = 100
         self.angel_change_last_update = 0
-        self.radius = 3
+        self.radius = 1.5
     
     def move(self, time):
         if time - self.angel_change_last_update > self.angle_change_cooldown:
