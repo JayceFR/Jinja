@@ -187,3 +187,21 @@ class Map():
                 x += 1
             y += 1
         return tile_rects
+
+class Drones():
+    def __init__(self, x, y, height, width) -> None:
+        self.rect = pygame.rect.Rect(x, y, width, height)
+        self.display_x = 0
+        self.display_y = 0
+    
+    def move(self, angle, scroll, player):
+        pass
+
+    def draw(self, display, scroll):
+        self.display_x = self.rect.x
+        self.display_y = self.rect.y
+        self.rect.x -= scroll[0]
+        self.rect.y -= scroll[1]
+        pygame.draw.rect(display, (255,0,0), self.rect)
+        self.rect.x = self.display_x
+        self.rect.y = self.display_y

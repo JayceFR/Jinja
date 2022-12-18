@@ -25,6 +25,7 @@ tile_5 = pygame.transform.flip(tile_5, True, False)
 tile_6 = pygame.image.load("./Assets/Tiles/tile5.png").convert_alpha()
 tiles = [tile_1, tile_2, tile_3, tile_4, tile_5, tile_6]
 player_img = pygame.image.load("./Assets/Sprites/player.png").convert_alpha()
+player_img = pygame.transform.scale(player_img, (player_img.get_width()*1.5, player_img.get_height()*1.5))
 player_img.set_colorkey((255,255,255))
 #Map
 map = framework.Map("./Assets/Maps/map.txt", tiles)
@@ -36,6 +37,8 @@ check_for_dash = True
 #Scroll
 true_scroll = [0,0]
 scroll = [0,0]
+#Drones
+drone = framework.Drones(60, 60, 16, 16)
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()
@@ -80,6 +83,8 @@ while run:
     player.move(tile_rects, time)
     #Drawing the Player
     player.draw(display, scroll)
+    #Drones
+    drone.draw(display, scroll)
     #Background Particles
     bg_particle_effect.recursive_call(time, display, scroll)
     #Checkiung for Player Dash
