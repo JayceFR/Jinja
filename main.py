@@ -38,7 +38,7 @@ check_for_dash = True
 true_scroll = [0,0]
 scroll = [0,0]
 #Drones
-drone = framework.Drones(60, 60, 16, 16)
+drone = framework.Drones(60, 30, 16, 16)
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()
@@ -84,7 +84,7 @@ while run:
     #Drawing the Player
     player.draw(display, scroll)
     #Drones
-    drone.move(scroll, player, display)
+    drone.move(scroll, player)
     drone.draw(display, scroll)
     #Background Particles
     bg_particle_effect.recursive_call(time, display, scroll)

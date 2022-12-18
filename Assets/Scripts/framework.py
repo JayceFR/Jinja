@@ -4,7 +4,7 @@ import math
 class Player():
     def __init__(self,x, y, width, height, image):
         self.rect = pygame.rect.Rect(x, y, width, height)
-        self.speed = 5
+        self.speed = 3
         self.acceleration = 0.05
         self.deceleration = 0.5
         self.gravity = 3
@@ -89,24 +89,24 @@ class Player():
             if self.was_moving_right:
                 self.speed -= self.deceleration
                 self.movement[0] += self.speed
-                if self.speed <= 5:
+                if self.speed <= 3:
                     self.was_moving_right = False
             if self.was_moving_left:
                 self.speed -= self.deceleration
                 self.movement[1] -= self.speed
-                if self.speed <= 5:
-                    self.speed = 5
+                if self.speed <= 3:
+                    self.speed = 3
                     self.was_moving_left = False
         if self.moving_right:
             self.movement[0] += self.speed
             self.was_moving_right = True
-            if self.speed < 8:
+            if self.speed < 6:
                 self.speed += self.acceleration
             self.moving_right = not self.moving_right
         if self.moving_left:
             self.movement[0] -= self.speed
             self.was_moving_left = True
-            if self.speed < 8:
+            if self.speed < 6:
                 self.speed += self.acceleration
             self.moving_left = not self.moving_left
 
@@ -193,15 +193,26 @@ class Drones():
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.display_x = 0
         self.display_y = 0
+        self.speed = 5
     
-    def move(self, scroll, player, display):
+    def move(self, scroll, player):
         point = (player.get_rect().x, self.rect.y)
-        pygame.draw.line(display, (255,0,0), (self.rect.x-scroll[0], self.rect.y-scroll[1]), (point[0] - scroll[0], point[1] - scroll[1]))
-        pygame.draw.line(display, (255,255,0), (point[0] - scroll[0], point[1] - scroll[1]), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
+        #pygame.draw.line(display, (255,0,0), (self.rect.x-scroll[0], self.rect.y-scroll[1]), (point[0] - scroll[0], point[1] - scroll[1]))
+        #pygame.draw.line(display, (255,255,0), (point[0] - scroll[0], point[1] - scroll[1]), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
         l1 = math.sqrt(math.pow((point[0] - self.rect.x), 2) + math.pow((point[1] - self.rect.y), 2))
         l2 = math.sqrt(math.pow((player.get_rect().x - point[0]), 2) + math.pow((player.get_rect().y - point[1]), 2))
         angle = math.degrees(math.atan2(l2, l1))
-        print(angle)
+        if self.rect.y - scroll[1] < player.get_rect().y - scroll[1]:
+            if self.rect.x - scroll[0] < player.get_rect().x - scroll[0]:
+                angle = 360 - angle
+            if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
+                angle = 180 + angle
+        else:
+            if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
+                angle = 180 - angle
+        #self.rect.y = player.get_rect().y - 70
+        self.rect.x += math.cos(math.radians(angle)) * self.speed
+
 
     def draw(self, display, scroll):
         self.display_x = self.rect.x
