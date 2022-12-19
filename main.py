@@ -41,11 +41,18 @@ tree_img = pygame.transform.scale(tree_img_copy, (tree_img_copy.get_width() * 3,
 player_img = pygame.image.load("./Assets/Sprites/player.png").convert_alpha()
 player_img = pygame.transform.scale(player_img, (player_img.get_width()*1.5, player_img.get_height()*1.5))
 player_img.set_colorkey((255,255,255))
+player_idle_img = pygame.image.load("./Assets/Sprites/player_idle.png").convert_alpha()
+player_run_img = pygame.image.load("./Assets/Sprites/player_run.png").convert_alpha()
 drone_img = pygame.image.load("./Assets/Sprites/drone.png").convert_alpha()
 #Map
 map = framework.Map("./Assets/Maps/map.txt", tiles)
 #Player 
-player = framework.Player(50,50,player_img.get_width(),player_img.get_height(), player_img)
+player_idle_animation = []
+player_run_animation = []
+for x in range(4):
+    player_idle_animation.append(get_image(player_idle_img, x, 14, 28, 1.5, (255,255,255)))
+    player_run_animation.append(get_image(player_run_img, x, 14, 28, 1.5, (255,255,255)))
+player = framework.Player(50,50,player_img.get_width(),player_img.get_height(), player_idle_animation, player_run_animation)
 dash = False
 extra_dash = True
 check_for_dash = True

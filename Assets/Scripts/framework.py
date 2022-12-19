@@ -2,7 +2,7 @@ import pygame
 import math
 
 class Player():
-    def __init__(self,x, y, width, height, image):
+    def __init__(self,x, y, width, height, player_idle, player_run):
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.speed = 3
         self.acceleration = 0.05
@@ -14,6 +14,11 @@ class Player():
         self.jump_frame = 0
         self.jump_cooldown = 200
         self.jump_last_update = 0
+        self.player_idle_animation = player_idle
+        self.player_run_animation = player_run
+        self.frame = 0
+        self.frame_cooldown = 500
+        self.frame_last_update = 0
         self.was_moving_right = False
         self.was_moving_left = False
         self.display_x = 0
@@ -21,9 +26,10 @@ class Player():
         self.is_dash = False
         self.dash_cooldown = 100
         self.dash_last_update = 0
+        self.turn_left = False
         self.dash_angle = 0
         self.collision_type = {}
-        self.player_img = image
+        self.idle = False
 
     def collision_test(self, tiles):
         hitlist = []
@@ -66,6 +72,22 @@ class Player():
                     self.jump = True
                     self.jump_last_update = time
         self.movement = [0,0]
+        if time - self.frame_last_update > self.frame_cooldown:
+            self.frame_last_update = time
+            self.frame += 1
+            if self.frame > 3:
+                self.frame = 0
+        
+        if not self.moving_left and not self.moving_right:
+            self.frame_cooldown = 500
+            self.idle = True
+        else:
+            self.frame_cooldown = 100
+            self.idle = False
+            if self.moving_left:
+                self.turn_left = True
+            else:
+                self.turn_left = False
         if self.is_dash:
             self.movement[0] += math.cos(math.radians(self.dash_angle)) * 30
             self.movement[1] -= math.sin(math.radians(self.dash_angle)) * 30
@@ -117,7 +139,16 @@ class Player():
         self.display_y = self.rect.y
         self.rect.x -= scroll[0]
         self.rect.y -= scroll[1]
-        display.blit(self.player_img, self.rect)
+        #display.blit(self.player_img, self.rect)
+        if self.idle:
+            display.blit(self.player_idle_animation[self.frame], self.rect)
+        else:
+            if self.turn_left:
+                player_flip = self.player_run_animation[self.frame].copy()
+                player_flip = pygame.transform.flip(player_flip, True, False)
+                display.blit(player_flip, self.rect)
+            else:
+                display.blit(self.player_run_animation[self.frame], self.rect)
         #pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
@@ -130,19 +161,14 @@ class Player():
     
     def dash(self, angle, m_pos, scroll, time):
         if self.rect.y - scroll[1] > m_pos[1]:
-            #The vampire is bottom of the player 
-            if self.rect.x - scroll[0] > m_pos[0]:
-                #The vampire is to the right 
+            if self.rect.x - scroll[0] > m_pos[0]: 
                 self.facing_right = False
                 angle = 180 - angle
         else:
-            #The vampire is top of the player 
             if self.rect.x - scroll[0] > m_pos[0]:
-                #The vampire is to the top right 
                 self.facing_right = False
                 angle = 180 + angle
             else:
-                #The vampire is to the top left
                 angle = 360 - angle
         self.is_dash = True
         self.dash_last_update = time
@@ -253,10 +279,10 @@ class Drones():
 class Drone_Bullets():
     def __init__(self, x, y, width, height, angle, time) -> None:
         self.rect = pygame.rect.Rect(x,y,width,height)
-        self.speed = 12
+        self.speed = 30
         self.alive = True
         self.start_time = time
-        self.die_after = 500
+        self.die_after = 100
         self.angle = angle
         self.display_x = 0
         self.display_y = 0
