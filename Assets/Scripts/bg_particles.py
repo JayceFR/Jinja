@@ -6,11 +6,11 @@ from pygame.locals import *
 class Master():
     def __init__(self) -> None:
         self.particles = []
-        self.particle_generation_cooldown = 20
+        self.particle_generation_cooldown = 100
         self.particle_generation_last_update = 0
 
     def add_particles(self):
-        self.particles.append(Particles(random.randint(0,10000)//2, random.randint(0,10)//2, 5))
+        self.particles.append(Particles(random.randint(0,10000)//2, random.randint(-350,-300)//2, 5))
     
     def recursive_call(self, time, display, scroll):
         if self.particles != []:
@@ -18,6 +18,7 @@ class Master():
                 particle.move(time)
                 particle.draw(display, scroll)
                 if not particle.alive:
+                    print("Dying")
                     self.particles.pop(pos)
         if time - self.particle_generation_last_update > self.particle_generation_cooldown:
             self.particle_generation_last_update = time

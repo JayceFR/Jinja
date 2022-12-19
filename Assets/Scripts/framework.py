@@ -165,6 +165,7 @@ class Map():
     
     def blit_map(self, window, scroll):
         tile_rects = []
+        tree_loc = []
         x = 0
         y = 0 
         for row in self.map:
@@ -182,11 +183,13 @@ class Map():
                     window.blit(self.tiles[4], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element == "6":
                     window.blit(self.tiles[5], (x * 32 - scroll[0], y * 32 - scroll[1]))
-                if element != "0":
+                if element == "t":
+                    tree_loc.append(list((x * 32, y * 32)))
+                if element != "0" and element != "t":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
-        return tile_rects
+        return tile_rects, tree_loc
 
 class Drones():
     def __init__(self, x, y, height, width) -> None:

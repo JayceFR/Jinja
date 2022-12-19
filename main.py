@@ -11,6 +11,9 @@ s_width = 1000
 s_height = 600
 screen = pygame.display.set_mode((s_width,s_height))
 display = pygame.Surface((s_width//2, s_height//2))
+def blit_tree(display, tree_img, tree_locs, scroll):
+    for loc in tree_locs:
+        display.blit(tree_img, (loc[0] - scroll[0], loc[1] - scroll[1] - 160))
 #Game Variables
 run = True
 clock = pygame.time.Clock()
@@ -24,6 +27,9 @@ tile_5 = tile_4.copy()
 tile_5 = pygame.transform.flip(tile_5, True, False)
 tile_6 = pygame.image.load("./Assets/Tiles/tile5.png").convert_alpha()
 tiles = [tile_1, tile_2, tile_3, tile_4, tile_5, tile_6]
+tree_img = pygame.image.load("./Assets/Sprites/tree.png").convert_alpha()
+tree_img_copy = tree_img.copy()
+tree_img = pygame.transform.scale(tree_img_copy, (tree_img_copy.get_width() * 3, tree_img_copy.get_height()*3))
 player_img = pygame.image.load("./Assets/Sprites/player.png").convert_alpha()
 player_img = pygame.transform.scale(player_img, (player_img.get_width()*1.5, player_img.get_height()*1.5))
 player_img.set_colorkey((255,255,255))
@@ -51,7 +57,9 @@ while run:
     blur_surf.set_alpha(90)
     display.blit(blur_surf, (0,0))
     #Blitting The Map
-    tile_rects = map.blit_map(display, scroll)
+    tile_rects, tree_locs = map.blit_map(display, scroll)
+    #Blitting The Items
+    blit_tree(display, tree_img, tree_locs, scroll)
     #Calculating scroll
     true_scroll[0] += (player.get_rect().x - true_scroll[0] - 241) / 20
     true_scroll[1] += (player.get_rect().y - true_scroll[1] - 166) / 20
