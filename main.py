@@ -14,6 +14,14 @@ display = pygame.Surface((s_width//2, s_height//2))
 def blit_tree(display, tree_img, tree_locs, scroll):
     for loc in tree_locs:
         display.blit(tree_img, (loc[0] - scroll[0], loc[1] - scroll[1] - 160))
+
+def get_image(sheet, frame, width, height, scale, colorkey):
+    image = pygame.Surface((width, height)).convert_alpha()
+    image.blit(sheet, (0, 0), ((frame * width), 0, width, height))
+    image = pygame.transform.scale(image, (width * scale, height * scale))
+    image.set_colorkey(colorkey)
+    return image
+
 #Game Variables
 run = True
 clock = pygame.time.Clock()
@@ -33,6 +41,7 @@ tree_img = pygame.transform.scale(tree_img_copy, (tree_img_copy.get_width() * 3,
 player_img = pygame.image.load("./Assets/Sprites/player.png").convert_alpha()
 player_img = pygame.transform.scale(player_img, (player_img.get_width()*1.5, player_img.get_height()*1.5))
 player_img.set_colorkey((255,255,255))
+drone_img = pygame.image.load("./Assets/Sprites/drone.png").convert_alpha()
 #Map
 map = framework.Map("./Assets/Maps/map.txt", tiles)
 #Player 
@@ -44,7 +53,10 @@ check_for_dash = True
 true_scroll = [0,0]
 scroll = [0,0]
 #Drones
-drone = framework.Drones(60, 30, 16, 16)
+drone_animation = []
+for x in range(2):
+    drone_animation.append(get_image(drone_img, x, 32,32,2, (0,0,0)))
+drone = framework.Drones(60, 30, 16, 16, drone_animation)
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()

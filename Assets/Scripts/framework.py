@@ -192,17 +192,26 @@ class Map():
         return tile_rects, tree_loc
 
 class Drones():
-    def __init__(self, x, y, height, width) -> None:
+    def __init__(self, x, y, height, width, drone_animation) -> None:
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.display_x = 0
         self.display_y = 0
         self.fire_particles = []
-        self.fire_cooldown = 500
+        self.frame = 0
+        self.frame_update_cooldown = 100
+        self.frame_last_update = 0
+        self.drone_animation = drone_animation
+        self.fire_cooldown = 2000
         self.fire_last_update = 0
         self.speed = 5
     
     def move(self, scroll, player, time, display):
         #point = (self.rect.x, player.get_rect().y)
+        if time - self.frame_last_update > self.frame_update_cooldown:
+            self.frame += 1
+            if self.frame > 1:
+                self.frame = 0
+            self.frame_last_update = time
         point = (player.get_rect().x, self.rect.y)
         #pygame.draw.line(display, (255,0,0), (self.rect.x-scroll[0], self.rect.y-scroll[1]), (point[0] - scroll[0], point[1] - scroll[1]))
         #pygame.draw.line(display, (255,255,0), (point[0] - scroll[0], point[1] - scroll[1]), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
@@ -222,33 +231,44 @@ class Drones():
         #self.rect.y -= math.sin(math.radians(angle)) * self.speed
         self.rect.x += math.cos(math.radians(angle)) * self.speed
         if time - self.fire_last_update > self.fire_cooldown:
-            self.fire_particles.append(Drone_Bullets(self.rect.x - scroll[0], self.rect.y - scroll[1], 3, 3, angle))
+            self.fire_particles.append(Drone_Bullets(self.rect.x - scroll[0] + 32, self.rect.y - scroll[1] + 32, 3, 3, angle, time))
             self.fire_last_update = time
         if self.fire_particles != []:
-            for particle in self.fire_particles:
-                particle.move()
-                particle.draw(display, scroll)
+            for pos, particle in sorted(enumerate(self.fire_particles), reverse=True):
+                particle.move(time)
+                particle.draw(display, (self.rect.x - scroll[0] + 32, self.rect.y - scroll[1] + 32))
+                if not particle.alive:
+                    self.fire_particles.pop(pos)
 
     def draw(self, display, scroll):
         self.display_x = self.rect.x
         self.display_y = self.rect.y
         self.rect.x -= scroll[0]
         self.rect.y -= scroll[1]
-        pygame.draw.rect(display, (255,0,0), self.rect)
+        display.blit(self.drone_animation[self.frame], (self.rect.x, self.rect.y))
+        #pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
     
 class Drone_Bullets():
-    def __init__(self, x, y, width, height, angle) -> None:
+    def __init__(self, x, y, width, height, angle, time) -> None:
         self.rect = pygame.rect.Rect(x,y,width,height)
-        self.speed = 4
+        self.speed = 12
+        self.alive = True
+        self.start_time = time
+        self.die_after = 500
         self.angle = angle
         self.display_x = 0
         self.display_y = 0
     
-    def move(self):
+    def move(self, current_time):
         self.rect.y -= math.sin(math.radians(self.angle)) * self.speed
         self.rect.x += math.cos(math.radians(self.angle)) * self.speed
+        if current_time - self.start_time > self.die_after:
+            self.alive = False
+        #if self.rect.y < 0 or self.rect.y > 900 or self.rect.x < 0 or self.rect.x > 20000:
+        #    self.alive = False
     
-    def draw(self, display, scroll):
+    def draw(self, display, start_pos):
+        pygame.draw.line(display, (255,0,0), start_pos, (self.rect.x, self.rect.y))
         pygame.draw.rect(display, (255,0,0), self.rect)
