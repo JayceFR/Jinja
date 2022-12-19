@@ -196,26 +196,38 @@ class Drones():
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.display_x = 0
         self.display_y = 0
+        self.fire_particles = []
+        self.fire_cooldown = 500
+        self.fire_last_update = 0
         self.speed = 5
     
-    def move(self, scroll, player):
+    def move(self, scroll, player, time, display):
+        #point = (self.rect.x, player.get_rect().y)
         point = (player.get_rect().x, self.rect.y)
         #pygame.draw.line(display, (255,0,0), (self.rect.x-scroll[0], self.rect.y-scroll[1]), (point[0] - scroll[0], point[1] - scroll[1]))
         #pygame.draw.line(display, (255,255,0), (point[0] - scroll[0], point[1] - scroll[1]), (player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]))
         l1 = math.sqrt(math.pow((point[0] - self.rect.x), 2) + math.pow((point[1] - self.rect.y), 2))
         l2 = math.sqrt(math.pow((player.get_rect().x - point[0]), 2) + math.pow((player.get_rect().y - point[1]), 2))
         angle = math.degrees(math.atan2(l2, l1))
-        if self.rect.y - scroll[1] < player.get_rect().y - scroll[1]:
-            if self.rect.x - scroll[0] < player.get_rect().x - scroll[0]:
-                angle = 360 - angle
+        if self.rect.y - scroll[1] > player.get_rect().y - scroll[1]:
+            if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
+                self.facing_right = False
+                angle = 180 - angle
+        else: 
             if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
                 angle = 180 + angle
-        else:
-            if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
-                angle = 180 - angle
+            else:
+                angle = 360 - angle
         #self.rect.y = player.get_rect().y - 70
+        #self.rect.y -= math.sin(math.radians(angle)) * self.speed
         self.rect.x += math.cos(math.radians(angle)) * self.speed
-
+        if time - self.fire_last_update > self.fire_cooldown:
+            self.fire_particles.append(Drone_Bullets(self.rect.x - scroll[0], self.rect.y - scroll[1], 3, 3, angle))
+            self.fire_last_update = time
+        if self.fire_particles != []:
+            for particle in self.fire_particles:
+                particle.move()
+                particle.draw(display, scroll)
 
     def draw(self, display, scroll):
         self.display_x = self.rect.x
@@ -225,3 +237,18 @@ class Drones():
         pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
+    
+class Drone_Bullets():
+    def __init__(self, x, y, width, height, angle) -> None:
+        self.rect = pygame.rect.Rect(x,y,width,height)
+        self.speed = 4
+        self.angle = angle
+        self.display_x = 0
+        self.display_y = 0
+    
+    def move(self):
+        self.rect.y -= math.sin(math.radians(self.angle)) * self.speed
+        self.rect.x += math.cos(math.radians(self.angle)) * self.speed
+    
+    def draw(self, display, scroll):
+        pygame.draw.rect(display, (255,0,0), self.rect)

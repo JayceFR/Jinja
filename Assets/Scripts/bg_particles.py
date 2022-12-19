@@ -18,7 +18,6 @@ class Master():
                 particle.move(time)
                 particle.draw(display, scroll)
                 if not particle.alive:
-                    print("Dying")
                     self.particles.pop(pos)
         if time - self.particle_generation_last_update > self.particle_generation_cooldown:
             self.particle_generation_last_update = time

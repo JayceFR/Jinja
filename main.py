@@ -92,7 +92,7 @@ while run:
     #Drawing the Player
     player.draw(display, scroll)
     #Drones
-    drone.move(scroll, player)
+    drone.move(scroll, player, time, display)
     drone.draw(display, scroll)
     #Background Particles
     bg_particle_effect.recursive_call(time, display, scroll)
