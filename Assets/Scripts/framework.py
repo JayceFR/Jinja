@@ -27,6 +27,7 @@ class Player():
         self.dash_cooldown = 100
         self.dash_last_update = 0
         self.turn_left = False
+        self.facing_left = False
         self.dash_angle = 0
         self.collision_type = {}
         self.idle = False
@@ -63,8 +64,12 @@ class Player():
     def move(self, tiles, time):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            if not self.facing_left:
+                self.facing_left = True
             self.moving_left = True
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            if self.facing_left:
+                self.facing_left = False
             self.moving_right = True
         if keys[pygame.K_SPACE] or keys[pygame.K_w]:
             if self.collision_type['bottom']:
@@ -141,7 +146,12 @@ class Player():
         self.rect.y -= scroll[1]
         #display.blit(self.player_img, self.rect)
         if self.idle:
-            display.blit(self.player_idle_animation[self.frame], self.rect)
+            if not self.facing_left:
+                display.blit(self.player_idle_animation[self.frame], self.rect)
+            else:
+                player_flip = self.player_idle_animation[self.frame].copy()
+                player_flip = pygame.transform.flip(player_flip, True, False)
+                display.blit(player_flip, self.rect)
         else:
             if self.turn_left:
                 player_flip = self.player_run_animation[self.frame].copy()
