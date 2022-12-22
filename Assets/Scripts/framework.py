@@ -5,7 +5,7 @@ class Player():
     def __init__(self,x, y, width, height, player_idle, player_run):
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.speed = 3
-        self.acceleration = 0.05
+        self.acceleration = 0.03
         self.deceleration = 0.5
         self.gravity = 3
         self.moving_right = False
@@ -61,7 +61,7 @@ class Player():
                 collision_types["top"] = True
         return collision_types
 
-    def move(self, tiles, time):
+    def move(self, tiles, time, dt):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             if not self.facing_left:
@@ -94,8 +94,8 @@ class Player():
             else:
                 self.turn_left = False
         if self.is_dash:
-            self.movement[0] += math.cos(math.radians(self.dash_angle)) * 30
-            self.movement[1] -= math.sin(math.radians(self.dash_angle)) * 30
+            self.movement[0] += math.cos(math.radians(self.dash_angle)) * 30 * dt
+            self.movement[1] -= math.sin(math.radians(self.dash_angle)) * 30 * dt
             if time - self.dash_last_update > self.dash_cooldown:
                 self.is_dash = False
                 self.dash_last_update = time
@@ -111,27 +111,27 @@ class Player():
                 self.jump_frame -= 0.8
             else:
                 if not self.is_dash:
-                    self.movement[1] += self.gravity
+                    self.movement[1] += self.gravity * dt
         if not self.moving_left and not self.moving_right:
             if self.was_moving_right:
                 self.speed -= self.deceleration
-                self.movement[0] += self.speed
+                self.movement[0] += self.speed * dt
                 if self.speed <= 3:
                     self.was_moving_right = False
             if self.was_moving_left:
                 self.speed -= self.deceleration
-                self.movement[1] -= self.speed
+                self.movement[1] -= self.speed * dt
                 if self.speed <= 3:
                     self.speed = 3
                     self.was_moving_left = False
         if self.moving_right:
-            self.movement[0] += self.speed
+            self.movement[0] += self.speed * dt
             self.was_moving_right = True
             if self.speed < 6:
                 self.speed += self.acceleration
             self.moving_right = not self.moving_right
         if self.moving_left:
-            self.movement[0] -= self.speed
+            self.movement[0] -= self.speed * dt
             self.was_moving_left = True
             if self.speed < 6:
                 self.speed += self.acceleration
@@ -162,6 +162,7 @@ class Player():
         #pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
+        return self.turn_left
     
     def chech_for_dash(self):
         if self.collision_type['top'] or self.collision_type['bottom'] or self.collision_type['right'] or self.collision_type['left']:
@@ -234,6 +235,8 @@ class Drones():
         self.display_y = 0
         self.fire_particles = []
         self.frame = 0
+        self.health = 100
+        self.alive = True
         self.frame_update_cooldown = 100
         self.frame_last_update = 0
         self.drone_animation = drone_animation
@@ -286,6 +289,9 @@ class Drones():
         self.rect.x = self.display_x
         self.rect.y = self.display_y
     
+    def get_rect(self):
+        return self.rect
+    
 class Drone_Bullets():
     def __init__(self, x, y, width, height, angle, time) -> None:
         self.rect = pygame.rect.Rect(x,y,width,height)
@@ -308,3 +314,69 @@ class Drone_Bullets():
     def draw(self, display, start_pos):
         pygame.draw.line(display, (255,0,0), start_pos, (self.rect.x, self.rect.y))
         pygame.draw.rect(display, (255,0,0), self.rect)
+
+
+#Sparks
+class Spark():
+    def __init__(self, loc, angle, speed, color, scale=1, type=0):
+        self.loc = loc
+        self.angle = angle
+        self.speed = speed
+        self.scale = scale
+        self.color = color
+        self.alive = True
+        self.type = type
+
+    def point_towards(self, angle, rate):
+        rotate_direction = ((angle - self.angle + math.pi * 3) % (math.pi * 2)) - math.pi
+        try:
+            rotate_sign = abs(rotate_direction) / rotate_direction
+        except ZeroDivisionError:
+            rotate_sign = 1
+        if abs(rotate_direction) < rate:
+            self.angle = angle
+        else:
+            self.angle += rate * rotate_sign
+
+    def calculate_movement(self, dt):
+        return [math.cos(self.angle) * self.speed * dt, math.sin(self.angle) * self.speed * dt]
+
+    # gravity and friction
+    def velocity_adjust(self, friction, force, terminal_velocity, dt):
+        movement = self.calculate_movement(dt)
+        movement[1] = min(terminal_velocity, movement[1] + force * dt)
+        movement[0] *= friction
+        self.angle = math.atan2(movement[1], movement[0])
+        # if you want to get more realistic, the speed should be adjusted here
+
+    def move(self, dt):
+        movement = self.calculate_movement(dt)
+        self.loc[0] += movement[0]
+        self.loc[1] += movement[1]
+
+        #Type of sparks
+        if self.type == 0:
+            self.point_towards(math.pi / 2, 0.02)
+        if self.type == 1:
+            self.velocity_adjust(0.975, 0.2, 8, dt)
+        if self.type == 2:
+            self.angle += 0.1
+
+        self.speed -= 0.1
+
+        if self.speed <= 0:
+            self.alive = False
+
+    def draw(self, surf, offset=[0, 0]):
+        if self.alive:
+            points = [
+                [self.loc[0] + math.cos(self.angle) * self.speed * self.scale,
+                 self.loc[1] + math.sin(self.angle) * self.speed * self.scale],
+                [self.loc[0] + math.cos(self.angle + math.pi / 2) * self.speed * self.scale * 0.3,
+                 self.loc[1] + math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
+                [self.loc[0] - math.cos(self.angle) * self.speed * self.scale * 3.5,
+                 self.loc[1] - math.sin(self.angle) * self.speed * self.scale * 3.5],
+                [self.loc[0] + math.cos(self.angle - math.pi / 2) * self.speed * self.scale * 0.3,
+                 self.loc[1] - math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
+            ]
+            pygame.draw.polygon(surf, self.color, points)

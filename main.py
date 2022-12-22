@@ -2,9 +2,11 @@ import pygame
 import Assets.Scripts.framework as framework
 import Assets.Scripts.background as backg
 import Assets.Scripts.bg_particles as bg_particles
+import Assets.Scripts.Sword as Sword
 import Assets.Scripts.flame as flames
 import math
 import random 
+import time as t
 from pygame.locals import *
 pygame.init()
 s_width = 1000
@@ -44,6 +46,10 @@ player_img.set_colorkey((255,255,255))
 player_idle_img = pygame.image.load("./Assets/Sprites/player_idle.png").convert_alpha()
 player_run_img = pygame.image.load("./Assets/Sprites/player_run.png").convert_alpha()
 drone_img = pygame.image.load("./Assets/Sprites/drone.png").convert_alpha()
+katana_img = pygame.image.load("./Assets/Sprites/katana.png").convert_alpha()
+katana = katana_img.copy()
+katana = pygame.transform.scale(katana_img, (katana_img.get_width()*1.5, katana_img.get_height()*1.5))
+katana.set_colorkey((255,255,255))
 #Map
 map = framework.Map("./Assets/Maps/map.txt", tiles)
 #Player 
@@ -56,19 +62,30 @@ player = framework.Player(50,50,player_img.get_width(),player_img.get_height(), 
 dash = False
 extra_dash = True
 check_for_dash = True
+#player_attacks = [[colliderect, current_time, time_delay]]
+player_attacks  = []
 #Scroll
 true_scroll = [0,0]
 scroll = [0,0]
 #Drones
 drone_animation = []
+#Sword
+p_sword = Sword.sword(50,50,katana.get_width(),katana.get_height(),katana)
 for x in range(2):
     drone_animation.append(get_image(drone_img, x, 32,32,2, (0,0,0)))
-drone = framework.Drones(60, 30, 16, 16, drone_animation)
+drone = framework.Drones(60, 30, drone_animation[0].get_width(), drone_animation[1].get_height(), drone_animation)
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()
+#Sparks
+sparks = []
+#Time
+last_time = t.time()
 while run:
     clock.tick(60)
+    dt = t.time() - last_time
+    dt *= 60
+    last_time = t.time()
     time = pygame.time.get_ticks()
     display.fill((20,0,20))
     blur_surf = display.copy()
@@ -85,6 +102,17 @@ while run:
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
     scroll[1] = int(scroll[1])
+    #Checking For Player Attack
+    if player_attacks != []:
+        for pos, attack in sorted(enumerate(player_attacks), reverse=True):
+            if time - attack[1] < attack[2]:
+                if attack[0].colliderect(drone.get_rect()):
+                    drone.health -= 10
+                    dt = 0.2
+                    for x in range(20):
+                        sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 4),(121, 36, 36), 1, 0))
+            else:
+                player_attacks.pop(pos)
     #Player Dash
     if dash:
         #Getting the mouse position
@@ -107,9 +135,12 @@ while run:
         player.dash(angle, m_pos, scroll, time)
         dash = not dash
     #Moving the Player
-    player.move(tile_rects, time)
+    player.move(tile_rects, time, dt)
     #Drawing the Player
-    player.draw(display, scroll)
+    facing_left = player.draw(display, scroll)
+    #Sword
+    p_sword.update((player.get_rect().x, player.get_rect().y), facing_left)
+    p_sword.blit(display, scroll)
     #Drones
     drone.move(scroll, player, time, display)
     drone.draw(display, scroll)
@@ -129,6 +160,15 @@ while run:
                     if extra_dash:
                         dash = True
                         extra_dash = False
+            if event.button == 1:
+                player_attacks.append(list((p_sword.attack(), time, 500)))
+    #Sparks Blitting
+    if sparks != []:
+        for i, spark in sorted(enumerate(sparks), reverse=True):
+            spark.move(1)
+            spark.draw(display)
+            if not spark.alive:
+                sparks.pop(i)
     surf = pygame.transform.scale(display, (s_width, s_height))
     screen.blit(surf, (0,0))
     pygame.display.update()
