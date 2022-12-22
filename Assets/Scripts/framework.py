@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 class Player():
     def __init__(self,x, y, width, height, player_idle, player_run):
@@ -7,7 +8,7 @@ class Player():
         self.speed = 3
         self.acceleration = 0.03
         self.deceleration = 0.5
-        self.gravity = 3
+        self.gravity = 6
         self.moving_right = False
         self.moving_left = False
         self.jump = False
@@ -63,19 +64,20 @@ class Player():
 
     def move(self, tiles, time, dt):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            if not self.facing_left:
-                self.facing_left = True
-            self.moving_left = True
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            if self.facing_left:
-                self.facing_left = False
-            self.moving_right = True
-        if keys[pygame.K_SPACE] or keys[pygame.K_w]:
-            if self.collision_type['bottom']:
-                if time - self.jump_last_update > self.jump_cooldown:
-                    self.jump = True
-                    self.jump_last_update = time
+        if self.collision_type != {} and self.collision_type['bottom']:
+            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+                if not self.facing_left:
+                    self.facing_left = True
+                self.moving_left = True
+            if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+                if self.facing_left:
+                    self.facing_left = False
+                self.moving_right = True
+            if keys[pygame.K_SPACE] or keys[pygame.K_w]:
+                if self.collision_type['bottom']:
+                    if time - self.jump_last_update > self.jump_cooldown:
+                        self.jump = True
+                        self.jump_last_update = time
         self.movement = [0,0]
         if time - self.frame_last_update > self.frame_cooldown:
             self.frame_last_update = time
@@ -203,6 +205,7 @@ class Map():
     def blit_map(self, window, scroll):
         tile_rects = []
         tree_loc = []
+        drone_loc = []
         x = 0
         y = 0 
         for row in self.map:
@@ -222,11 +225,13 @@ class Map():
                     window.blit(self.tiles[5], (x * 32 - scroll[0], y * 32 - scroll[1]))
                 if element == "t":
                     tree_loc.append(list((x * 32, y * 32)))
-                if element != "0" and element != "t":
+                if element == "d":
+                    drone_loc.append(list((x * 32, y * 32)))
+                if element != "0" and element != "t" and element != "d":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
-        return tile_rects, tree_loc
+        return tile_rects, tree_loc, drone_loc
 
 class Drones():
     def __init__(self, x, y, height, width, drone_animation) -> None:
@@ -240,9 +245,10 @@ class Drones():
         self.frame_update_cooldown = 100
         self.frame_last_update = 0
         self.drone_animation = drone_animation
+        self.max_depth = random.randint(0,50)
         self.fire_cooldown = 2000
         self.fire_last_update = 0
-        self.speed = 5
+        self.speed = 3
     
     def draw_health_bar(self, display):
         ratio = self.health / 100
@@ -252,6 +258,8 @@ class Drones():
     
     def move(self, scroll, player, time, display):
         #point = (self.rect.x, player.get_rect().y)
+        if self.health <= 0:
+            self.alive = False
         if time - self.frame_last_update > self.frame_update_cooldown:
             self.frame += 1
             if self.frame > 1:
@@ -273,7 +281,9 @@ class Drones():
             else:
                 angle = 360 - angle
         #self.rect.y = player.get_rect().y - 70
-        #self.rect.y -= math.sin(math.radians(angle)) * self.speed
+        self.rect.y -= math.sin(math.radians(angle)) * self.speed
+        if self.rect.y >= self.max_depth:
+            self.rect.y = self.max_depth
         self.rect.x += math.cos(math.radians(angle)) * self.speed
         if time - self.fire_last_update > self.fire_cooldown:
             self.fire_particles.append(Drone_Bullets(self.rect.x - scroll[0] + 32, self.rect.y - scroll[1] + 32, 3, 3, angle, time))

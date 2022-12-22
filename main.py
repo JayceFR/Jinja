@@ -17,6 +17,19 @@ def blit_tree(display, tree_img, tree_locs, scroll):
     for loc in tree_locs:
         display.blit(tree_img, (loc[0] - scroll[0], loc[1] - scroll[1] - 160))
 
+def create_drones(drones, drone_loc, drone_animation):
+    for loc in drone_loc:
+        drones.append(framework.Drones(loc[0], loc[1], drone_animation[0].get_width(), drone_animation[0].get_height(), drone_animation))
+    return drones
+
+def blit_drones(drones, display, scroll, player, time):
+    for pos, drone in sorted(enumerate(drones), reverse=True):
+        if drone.alive:
+            drone.move(scroll, player, time, display)
+            drone.draw(display, scroll)
+        else:
+            drones.pop(pos)
+
 def get_image(sheet, frame, width, height, scale, colorkey):
     image = pygame.Surface((width, height)).convert_alpha()
     image.blit(sheet, (0, 0), ((frame * width), 0, width, height))
@@ -68,12 +81,15 @@ player_attacks  = []
 true_scroll = [0,0]
 scroll = [0,0]
 #Drones
+drones = []
 drone_animation = []
+drone_last_update = 0
+drone_cooldown = 3000
 #Sword
 p_sword = Sword.sword(50,50,katana.get_width(),katana.get_height(),katana)
 for x in range(2):
     drone_animation.append(get_image(drone_img, x, 32,32,2, (0,0,0)))
-drone = framework.Drones(60, 30, drone_animation[0].get_width(), drone_animation[1].get_height(), drone_animation)
+#drone = framework.Drones(60, 30, drone_animation[0].get_width(), drone_animation[1].get_height(), drone_animation)
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()
@@ -93,9 +109,14 @@ while run:
     blur_surf.set_alpha(90)
     display.blit(blur_surf, (0,0))
     #Blitting The Map
-    tile_rects, tree_locs = map.blit_map(display, scroll)
-    #Blitting The Items
+    tile_rects, tree_locs, drone_loc = map.blit_map(display, scroll)
+    #Creating Items
+    if time - drone_last_update > drone_cooldown:
+        drones = create_drones(drones, drone_loc, drone_animation)
+        drone_last_update = time
+    #Blitting Items
     blit_tree(display, tree_img, tree_locs, scroll)
+    blit_drones(drones, display, scroll, player, time)
     #Calculating scroll
     true_scroll[0] += (player.get_rect().x - true_scroll[0] - 241) / 20
     true_scroll[1] += (player.get_rect().y - true_scroll[1] - 166) / 20
@@ -106,13 +127,15 @@ while run:
     if player_attacks != []:
         for pos, attack in sorted(enumerate(player_attacks), reverse=True):
             if time - attack[1] < attack[2]:
-                if attack[0].colliderect(drone.get_rect()):
-                    drone.health -= 2
-                    dt = 0.2
-                    scroll[0] += random.randint(-5,5)
-                    scroll[1] += random.randint(-5,5)
-                    for x in range(20):
-                        sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 4),(121, 36, 36), 1, 0))
+                if drones != []:
+                    for drone in drones:
+                        if attack[0].colliderect(drone.get_rect()):
+                            drone.health -= 2
+                            dt = 0.2
+                            scroll[0] += random.randint(-5,5)
+                            scroll[1] += random.randint(-5,5)
+                            for x in range(20):
+                                sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 4),(121, 36, 36), 1, 0))
             else:
                 player_attacks.pop(pos)
     #Player Dash
@@ -143,9 +166,6 @@ while run:
     #Sword
     p_sword.update((player.get_rect().x, player.get_rect().y), facing_left)
     p_sword.blit(display, scroll)
-    #Drones
-    drone.move(scroll, player, time, display)
-    drone.draw(display, scroll)
     #Background Particles
     bg_particle_effect.recursive_call(time, display, scroll, dt)
     #Checkiung for Player Dash
