@@ -246,9 +246,9 @@ class Drones():
     
     def draw_health_bar(self, display):
         ratio = self.health / 100
-        pygame.draw.rect(display, (255,255,255), (self.rect.x - 20, self.rect.y - 2, 104  , 17//2))
+        pygame.draw.rect(display, (99,155,255), (self.rect.x - 20, self.rect.y - 2, 104  , 17//2))
         pygame.draw.rect(display, (255,0,0), (self.rect.x - 18, self.rect.y, 100  , 15//2))
-        pygame.draw.rect(display, (255,255,0), (self.rect.x - 18, self.rect.y, 100 * ratio , 15//2))
+        pygame.draw.rect(display, (69,40,60), (self.rect.x - 18, self.rect.y, 100 * ratio , 15//2))
     
     def move(self, scroll, player, time, display):
         #point = (self.rect.x, player.get_rect().y)

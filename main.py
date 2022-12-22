@@ -107,7 +107,7 @@ while run:
         for pos, attack in sorted(enumerate(player_attacks), reverse=True):
             if time - attack[1] < attack[2]:
                 if attack[0].colliderect(drone.get_rect()):
-                    drone.health -= 3
+                    drone.health -= 2
                     dt = 0.2
                     scroll[0] += random.randint(-5,5)
                     scroll[1] += random.randint(-5,5)
