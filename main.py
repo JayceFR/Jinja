@@ -107,8 +107,10 @@ while run:
         for pos, attack in sorted(enumerate(player_attacks), reverse=True):
             if time - attack[1] < attack[2]:
                 if attack[0].colliderect(drone.get_rect()):
-                    drone.health -= 10
+                    drone.health -= 3
                     dt = 0.2
+                    scroll[0] += random.randint(-5,5)
+                    scroll[1] += random.randint(-5,5)
                     for x in range(20):
                         sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 4),(121, 36, 36), 1, 0))
             else:
@@ -145,7 +147,7 @@ while run:
     drone.move(scroll, player, time, display)
     drone.draw(display, scroll)
     #Background Particles
-    bg_particle_effect.recursive_call(time, display, scroll)
+    bg_particle_effect.recursive_call(time, display, scroll, dt)
     #Checkiung for Player Dash
     if not extra_dash:
         extra_dash = player.chech_for_dash()

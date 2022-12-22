@@ -244,6 +244,12 @@ class Drones():
         self.fire_last_update = 0
         self.speed = 5
     
+    def draw_health_bar(self, display):
+        ratio = self.health / 100
+        pygame.draw.rect(display, (255,255,255), (self.rect.x - 20, self.rect.y - 2, 104  , 17//2))
+        pygame.draw.rect(display, (255,0,0), (self.rect.x - 18, self.rect.y, 100  , 15//2))
+        pygame.draw.rect(display, (255,255,0), (self.rect.x - 18, self.rect.y, 100 * ratio , 15//2))
+    
     def move(self, scroll, player, time, display):
         #point = (self.rect.x, player.get_rect().y)
         if time - self.frame_last_update > self.frame_update_cooldown:
@@ -285,6 +291,7 @@ class Drones():
         self.rect.x -= scroll[0]
         self.rect.y -= scroll[1]
         display.blit(self.drone_animation[self.frame], (self.rect.x, self.rect.y))
+        self.draw_health_bar(display)
         #pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y

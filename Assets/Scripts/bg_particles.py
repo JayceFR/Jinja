@@ -12,10 +12,10 @@ class Master():
     def add_particles(self):
         self.particles.append(Particles(random.randint(0,10000)//2, random.randint(-350,-300)//2, 5))
     
-    def recursive_call(self, time, display, scroll):
+    def recursive_call(self, time, display, scroll, dt):
         if self.particles != []:
             for pos, particle in sorted(enumerate(self.particles), reverse=True):
-                particle.move(time)
+                particle.move(time, dt)
                 particle.draw(display, scroll)
                 if not particle.alive:
                     self.particles.pop(pos)
@@ -36,14 +36,14 @@ class Particles():
         self.angel_change_last_update = 0
         self.radius = 1.5
     
-    def move(self, time):
+    def move(self, time, dt):
         if time - self.angel_change_last_update > self.angle_change_cooldown:
             self.angel_change_last_update = time
             self.angle += random.randint(0,10)
             if self.angle > 360:
                 self.angle = 0  
-        self.x += math.sin(math.radians(self.angle))
-        self.y += 0.5
+        self.x += math.sin(math.radians(self.angle)) * dt
+        self.y += 0.5 * dt
         if self.x > 10000 or self.y > 600:
             self.alive = False
 
