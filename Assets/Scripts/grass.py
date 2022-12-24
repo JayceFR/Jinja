@@ -5,8 +5,12 @@ import random
 class grass():
     def __init__(self, loc, width, height) -> None:
         self.loc = loc
+        self.dup_y = loc[1] + 3
+        self.actual_y = loc[1]
         self.width = width
         self.height = height
+        self.actual_height = height
+        self.dup_height = height // 1.2
         self.rect = pygame.rect.Rect(self.loc[0], self.loc[1], self.width, self.height)
         self.display_x = 0
         self.display_y = 0
@@ -27,6 +31,8 @@ class grass():
     
     def move(self):
         if self.angle == 270:
+            self.height = self.actual_height
+            self.loc[1] = self.actual_y
             self.angle = 0
         if self.angle > 180:
             self.change_angle = 0 - self.change_angle
@@ -41,4 +47,6 @@ class grass():
     
     def colliding(self):
         self.angle = 270
+        self.loc[1] = self.dup_y
+        self.height = self.dup_height
 

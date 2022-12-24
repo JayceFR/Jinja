@@ -93,9 +93,9 @@ drone_cooldown = 3000
 #grasses = g.grass((40,270), 2, 18)
 grasses = []
 x_pos = 40
-for x in range(10):
+for x in range(100):
     x_pos += 2.5
-    grasses.append(g.grass((x_pos, 270), 2, 18))
+    grasses.append(g.grass([x_pos, 270], 2, 18))
 grass_last_update = 0
 grass_cooldown = 50
 #Sword
