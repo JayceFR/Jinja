@@ -4,6 +4,7 @@ import Assets.Scripts.background as backg
 import Assets.Scripts.bg_particles as bg_particles
 import Assets.Scripts.Sword as Sword
 import Assets.Scripts.flame as flames
+import Assets.Scripts.grass as g
 import math
 import random 
 import time as t
@@ -14,8 +15,11 @@ s_height = 600
 screen = pygame.display.set_mode((s_width,s_height))
 display = pygame.Surface((s_width//2, s_height//2))
 def blit_tree(display, tree_img, tree_locs, scroll):
+    tree_screen = display.copy()
     for loc in tree_locs:
-        display.blit(tree_img, (loc[0] - scroll[0], loc[1] - scroll[1] - 160))
+        tree_screen.blit(tree_img, (loc[0] - scroll[0], loc[1] - scroll[1] - 160))
+    tree_screen.set_alpha(170)
+    display.blit(tree_screen, (0,0))
 
 def create_drones(drones, drone_loc, drone_animation):
     for loc in drone_loc:
@@ -85,6 +89,15 @@ drones = []
 drone_animation = []
 drone_last_update = 0
 drone_cooldown = 3000
+#Grass
+#grasses = g.grass((40,270), 2, 18)
+grasses = []
+x_pos = 40
+for x in range(10):
+    x_pos += 2.5
+    grasses.append(g.grass((x_pos, 270), 2, 18))
+grass_last_update = 0
+grass_cooldown = 50
 #Sword
 p_sword = Sword.sword(50,50,katana.get_width(),katana.get_height(),katana)
 for x in range(2):
@@ -135,7 +148,7 @@ while run:
                             scroll[0] += random.randint(-5,5)
                             scroll[1] += random.randint(-5,5)
                             for x in range(20):
-                                sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 4),(121, 36, 36), 1, 0))
+                                sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5),(121, 36, 36), 1, 0))
             else:
                 player_attacks.pop(pos)
     #Player Dash
@@ -187,10 +200,18 @@ while run:
     #Sparks Blitting
     if sparks != []:
         for i, spark in sorted(enumerate(sparks), reverse=True):
-            spark.move(1)
+            spark.move(dt)
             spark.draw(display)
             if not spark.alive:
                 sparks.pop(i)
+    for grass in grasses:
+        if grass.get_rect().colliderect(player.get_rect()):
+            grass.colliding()
+        grass.draw(display, scroll)
+    if time - grass_last_update > grass_cooldown:
+        for grass in grasses:
+            grass.move()
+        grass_last_update = time
     surf = pygame.transform.scale(display, (s_width, s_height))
     screen.blit(surf, (0,0))
     pygame.display.update()

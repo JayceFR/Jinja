@@ -373,7 +373,7 @@ class Spark():
 
         #Type of sparks
         if self.type == 0:
-            self.point_towards(math.pi / 2, 0.02)
+            self.point_towards(math.pi / 4, 0.02)
         if self.type == 1:
             self.velocity_adjust(0.975, 0.2, 8, dt)
         if self.type == 2:
