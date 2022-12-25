@@ -34,6 +34,13 @@ def blit_drones(drones, display, scroll, player, time):
         else:
             drones.pop(pos)
 
+def blit_grass(grasses, display, scroll, player):
+    for grass in grasses:
+        if grass.get_rect().colliderect(player.get_rect()):
+            grass.colliding()
+        grass.draw(display, scroll)
+    
+
 def get_image(sheet, frame, width, height, scale, colorkey):
     image = pygame.Surface((width, height)).convert_alpha()
     image.blit(sheet, (0, 0), ((frame * width), 0, width, height))
@@ -90,12 +97,9 @@ drone_animation = []
 drone_last_update = 0
 drone_cooldown = 3000
 #Grass
-#grasses = g.grass((40,270), 2, 18)
 grasses = []
-x_pos = 40
-for x in range(100):
-    x_pos += 2.5
-    grasses.append(g.grass([x_pos, 270], 2, 18))
+grass_loc = []
+grass_spawn = True
 grass_last_update = 0
 grass_cooldown = 50
 #Sword
@@ -122,14 +126,27 @@ while run:
     blur_surf.set_alpha(90)
     display.blit(blur_surf, (0,0))
     #Blitting The Map
-    tile_rects, tree_locs, drone_loc = map.blit_map(display, scroll)
+    tile_rects, tree_locs, drone_loc, grass_loc = map.blit_map(display, scroll)
     #Creating Items
     if time - drone_last_update > drone_cooldown:
         drones = create_drones(drones, drone_loc, drone_animation)
         drone_last_update = time
+    if grass_spawn:
+        for loc in grass_loc:
+            x_pos = loc[0]
+            while x_pos < loc[0] + 32:
+                x_pos += 2.5
+                grasses.append(g.grass([x_pos, loc[1]+14], 2, 18))
+        grass_spawn = False
     #Blitting Items
     blit_tree(display, tree_img, tree_locs, scroll)
     blit_drones(drones, display, scroll, player, time)
+    blit_grass(grasses, display, scroll, player)
+    #Movement of grass
+    if time - grass_last_update > grass_cooldown:
+        for grass in grasses:
+            grass.move()
+        grass_last_update = time
     #Calculating scroll
     true_scroll[0] += (player.get_rect().x - true_scroll[0] - 241) / 20
     true_scroll[1] += (player.get_rect().y - true_scroll[1] - 166) / 20
@@ -204,14 +221,7 @@ while run:
             spark.draw(display)
             if not spark.alive:
                 sparks.pop(i)
-    for grass in grasses:
-        if grass.get_rect().colliderect(player.get_rect()):
-            grass.colliding()
-        grass.draw(display, scroll)
-    if time - grass_last_update > grass_cooldown:
-        for grass in grasses:
-            grass.move()
-        grass_last_update = time
+    
     surf = pygame.transform.scale(display, (s_width, s_height))
     screen.blit(surf, (0,0))
     pygame.display.update()

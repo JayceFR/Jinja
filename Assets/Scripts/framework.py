@@ -206,6 +206,7 @@ class Map():
         tile_rects = []
         tree_loc = []
         drone_loc = []
+        grass_loc = []
         x = 0
         y = 0 
         for row in self.map:
@@ -227,11 +228,13 @@ class Map():
                     tree_loc.append(list((x * 32, y * 32)))
                 if element == "d":
                     drone_loc.append(list((x * 32, y * 32)))
-                if element != "0" and element != "t" and element != "d":
+                if element == "g":
+                    grass_loc.append(list((x*32,y*32)))
+                if element != "0" and element != "t" and element != "d" and element != "g":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
-        return tile_rects, tree_loc, drone_loc
+        return tile_rects, tree_loc, drone_loc, grass_loc
 
 class Drones():
     def __init__(self, x, y, height, width, drone_animation) -> None:
