@@ -6,11 +6,11 @@ from pygame.locals import *
 class Master():
     def __init__(self) -> None:
         self.particles = []
-        self.particle_generation_cooldown = 100
+        self.particle_generation_cooldown = 50
         self.particle_generation_last_update = 0
 
     def add_particles(self):
-        self.particles.append(Particles(random.randint(0,10000)//2, random.randint(-350,-300)//2, 5))
+        self.particles.append(Particles(random.randint(0,10000)//2, random.randint(-100,-50)//2, 5))
     
     def recursive_call(self, time, display, scroll, dt):
         if self.particles != []:
@@ -44,7 +44,7 @@ class Particles():
                 self.angle = 0  
         self.x += math.sin(math.radians(self.angle)) * dt
         self.y += 0.5 * dt
-        if self.x > 10000 or self.y > 600:
+        if self.x > 10000 or self.y > 6000:
             self.alive = False
 
     def draw(self, display, scroll):

@@ -3,7 +3,6 @@ import Assets.Scripts.framework as framework
 import Assets.Scripts.background as backg
 import Assets.Scripts.bg_particles as bg_particles
 import Assets.Scripts.Sword as Sword
-import Assets.Scripts.flame as flames
 import Assets.Scripts.grass as g
 import math
 import random 
@@ -138,10 +137,9 @@ while run:
                 x_pos += 2.5
                 grasses.append(g.grass([x_pos, loc[1]+14], 2, 18))
         grass_spawn = False
-    #Blitting Items
+    #Blitting Items before Blitting Player
     blit_tree(display, tree_img, tree_locs, scroll)
     blit_drones(drones, display, scroll, player, time)
-    blit_grass(grasses, display, scroll, player)
     #Movement of grass
     if time - grass_last_update > grass_cooldown:
         for grass in grasses:
@@ -221,7 +219,8 @@ while run:
             spark.draw(display)
             if not spark.alive:
                 sparks.pop(i)
-    
+    #Blitting Items After Blitting The Player
+    blit_grass(grasses, display, scroll, player)
     surf = pygame.transform.scale(display, (s_width, s_height))
     screen.blit(surf, (0,0))
     pygame.display.update()

@@ -8,7 +8,7 @@ class Player():
         self.speed = 3
         self.acceleration = 0.03
         self.deceleration = 0.5
-        self.gravity = 6
+        self.gravity = 8
         self.moving_right = False
         self.moving_left = False
         self.jump = False
@@ -64,20 +64,19 @@ class Player():
 
     def move(self, tiles, time, dt):
         keys = pygame.key.get_pressed()
-        if self.collision_type != {} and self.collision_type['bottom']:
-            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-                if not self.facing_left:
-                    self.facing_left = True
-                self.moving_left = True
-            if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-                if self.facing_left:
-                    self.facing_left = False
-                self.moving_right = True
-            if keys[pygame.K_SPACE] or keys[pygame.K_w]:
-                if self.collision_type['bottom']:
-                    if time - self.jump_last_update > self.jump_cooldown:
-                        self.jump = True
-                        self.jump_last_update = time
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            if not self.facing_left:
+                self.facing_left = True
+            self.moving_left = True
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            if self.facing_left:
+                self.facing_left = False
+            self.moving_right = True
+        if keys[pygame.K_SPACE] or keys[pygame.K_w]:
+            if self.collision_type['bottom']:
+                if time - self.jump_last_update > self.jump_cooldown:
+                    self.jump = True
+                    self.jump_last_update = time
         self.movement = [0,0]
         if time - self.frame_last_update > self.frame_cooldown:
             self.frame_last_update = time
