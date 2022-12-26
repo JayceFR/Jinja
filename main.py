@@ -111,6 +111,13 @@ bg = backg.background()
 bg_particle_effect = bg_particles.Master()
 #Sparks
 sparks = []
+#BackGround Settings
+lightning = False
+lightning_cooldown = 5000
+lightning_colors = [[(0,64,0), (0,128,64), (0,255,0)], [(255,0,0), (128,0,0), (128,64,64)], [(255,255,0), (255,128,64), (255,255,128), (255,128,0)]]
+lightning_color = 0
+lightning_last_update = 0
+lightning_alpha = 255
 #Time
 last_time = t.time()
 while run:
@@ -119,10 +126,24 @@ while run:
     dt *= 60
     last_time = t.time()
     time = pygame.time.get_ticks()
-    display.fill((20,0,20))
-    blur_surf = display.copy()
-    bg.recursive_call(blur_surf)
-    blur_surf.set_alpha(90)
+    #Checking For Lightning
+    if not lightning:
+        if time - lightning_last_update > lightning_cooldown:
+            lightning = True
+            lightning_alpha = 255
+            lightning_color = lightning_colors[random.randint(0,len(lightning_colors) - 1)]
+            lightning_last_update = time
+        display.fill((15,27,55))
+        blur_surf = display.copy()
+        bg.recursive_call(blur_surf)
+        blur_surf.set_alpha(80)
+    else:
+        display.fill(lightning_color[random.randint(0,len(lightning_color) - 1)])
+        blur_surf = display.copy()
+        blur_surf.set_alpha(lightning_alpha)
+        lightning_alpha -= 5
+        if lightning_alpha < 100:
+            lightning = False
     display.blit(blur_surf, (0,0))
     #Blitting The Map
     tile_rects, tree_locs, drone_loc, grass_loc = map.blit_map(display, scroll)
