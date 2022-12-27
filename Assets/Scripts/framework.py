@@ -253,6 +253,7 @@ class Drones():
         self.height = height
         self.display_y = 0
         self.fire_particles = []
+        self.og_pos = [x,y]
         self.frame = 0
         self.health = 100
         self.alive = True
@@ -260,7 +261,7 @@ class Drones():
         self.snow_ball_img = snow_ball_img
         self.frame_last_update = 0
         self.drone_animation = drone_animation
-        self.max_depth = random.randint(0,50)
+        self.max_depth = 10
         self.fire_cooldown = 2000
         self.fire_last_update = 0
         self.speed = 3
@@ -304,6 +305,10 @@ class Drones():
         if self.rect.y >= self.max_depth:
             self.rect.y = self.max_depth
         self.rect.x += math.cos(math.radians(angle)) * self.speed
+        if self.rect.x >= self.og_pos[0] + 100:
+            self.rect.x = self.og_pos[0] + 100
+        if self.rect.x <= self.og_pos[0] - 100:
+            self.rect.x = self.og_pos[0] - 100
         if time - self.fire_last_update > self.fire_cooldown:
             for x in range(5):
                 self.sparks.append(Spark([self.rect.x - scroll[0] + self.width//2, self.rect.y - scroll[1] + self.height//2],math.radians(random.randint(0,180)), random.randint(4,6),(125, 112, 123), 1, 0))

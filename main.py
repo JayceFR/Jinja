@@ -95,8 +95,7 @@ scroll = [0,0]
 #Drones
 drones = []
 drone_animation = []
-drone_last_update = 0
-drone_cooldown = 3000
+drone_spawn = True
 #Grass
 grasses = []
 grass_loc = []
@@ -150,9 +149,9 @@ while run:
     #Blitting The Map
     tile_rects, tree_locs, drone_loc, grass_loc = map.blit_map(display, scroll)
     #Creating Items
-    if time - drone_last_update > drone_cooldown:
+    if drone_spawn:
         drones = create_drones(drones, drone_loc, drone_animation, snow_ball_img)
-        drone_last_update = time
+        drone_spawn = False
     if grass_spawn:
         for loc in grass_loc:
             x_pos = loc[0]
