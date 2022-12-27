@@ -20,15 +20,15 @@ def blit_tree(display, tree_img, tree_locs, scroll):
     tree_screen.set_alpha(170)
     display.blit(tree_screen, (0,0))
 
-def create_drones(drones, drone_loc, drone_animation):
+def create_drones(drones, drone_loc, drone_animation, snow_ball_img):
     for loc in drone_loc:
-        drones.append(framework.Drones(loc[0], loc[1], drone_animation[0].get_width(), drone_animation[0].get_height(), drone_animation))
+        drones.append(framework.Drones(loc[0], loc[1], drone_animation[0].get_width(), drone_animation[0].get_height(), drone_animation, snow_ball_img))
     return drones
 
-def blit_drones(drones, display, scroll, player, time):
+def blit_drones(drones, display, scroll, player, time, dt):
     for pos, drone in sorted(enumerate(drones), reverse=True):
         if drone.alive:
-            drone.move(scroll, player, time, display)
+            drone.move(scroll, player, time, display, dt)
             drone.draw(display, scroll)
         else:
             drones.pop(pos)
@@ -73,15 +73,17 @@ katana_img = pygame.image.load("./Assets/Sprites/katana.png").convert_alpha()
 katana = katana_img.copy()
 katana = pygame.transform.scale(katana_img, (katana_img.get_width()*1.5, katana_img.get_height()*1.5))
 katana.set_colorkey((255,255,255))
+snow_ball_img = pygame.image.load("./Assets/Sprites/snow_ball.png").convert_alpha()
+snow_ball_img.set_colorkey((0,0,0))
 #Map
-map = framework.Map("./Assets/Maps/map.txt", tiles)
+map = framework.Map("./Assets/Maps/level1.txt", tiles)
 #Player 
 player_idle_animation = []
 player_run_animation = []
 for x in range(4):
     player_idle_animation.append(get_image(player_idle_img, x, 14, 28, 1.5, (255,255,255)))
     player_run_animation.append(get_image(player_run_img, x, 14, 28, 1.5, (255,255,255)))
-player = framework.Player(50,50,player_img.get_width(),player_img.get_height(), player_idle_animation, player_run_animation)
+player = framework.Player(160,50,player_img.get_width(),player_img.get_height(), player_idle_animation, player_run_animation)
 dash = False
 extra_dash = True
 check_for_dash = True
@@ -113,7 +115,7 @@ bg_particle_effect = bg_particles.Master()
 sparks = []
 #BackGround Settings
 lightning = False
-lightning_cooldown = 5000
+lightning_cooldown = 20000
 lightning_colors = [[(0,64,0), (0,128,64), (0,255,0)], [(255,0,0), (128,0,0), (128,64,64)], [(255,255,0), (255,128,64), (255,255,128), (255,128,0)]]
 lightning_color = 0
 lightning_last_update = 0
@@ -129,7 +131,7 @@ while run:
     #Checking For Lightning
     if not lightning:
         if time - lightning_last_update > lightning_cooldown:
-            lightning = True
+            lightning = False
             lightning_alpha = 255
             lightning_color = lightning_colors[random.randint(0,len(lightning_colors) - 1)]
             lightning_last_update = time
@@ -149,7 +151,7 @@ while run:
     tile_rects, tree_locs, drone_loc, grass_loc = map.blit_map(display, scroll)
     #Creating Items
     if time - drone_last_update > drone_cooldown:
-        drones = create_drones(drones, drone_loc, drone_animation)
+        drones = create_drones(drones, drone_loc, drone_animation, snow_ball_img)
         drone_last_update = time
     if grass_spawn:
         for loc in grass_loc:
@@ -160,7 +162,7 @@ while run:
         grass_spawn = False
     #Blitting Items before Blitting Player
     blit_tree(display, tree_img, tree_locs, scroll)
-    blit_drones(drones, display, scroll, player, time)
+    blit_drones(drones, display, scroll, player, time, dt)
     #Movement of grass
     if time - grass_last_update > grass_cooldown:
         for grass in grasses:
@@ -217,20 +219,10 @@ while run:
     p_sword.blit(display, scroll)
     #Background Particles
     bg_particle_effect.recursive_call(time, display, scroll, dt)
-    #Checkiung for Player Dash
-    if not extra_dash:
-        extra_dash = player.chech_for_dash()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:
-                if player.chech_for_dash() == True:
-                    dash = True
-                else:
-                    if extra_dash:
-                        dash = True
-                        extra_dash = False
             if event.button == 1:
                 player_attacks.append(list((p_sword.attack(), time, 500)))
     #Sparks Blitting
