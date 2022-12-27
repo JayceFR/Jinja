@@ -8,7 +8,7 @@ class Player():
         self.speed = 3
         self.acceleration = 0.03
         self.deceleration = 0.5
-        self.gravity = 8
+        self.gravity = 5
         self.moving_right = False
         self.moving_left = False
         self.jump = False
@@ -216,6 +216,7 @@ class Map():
         tree_loc = []
         drone_loc = []
         grass_loc = []
+        spike_loc = []
         x = 0
         y = 0 
         for row in self.map:
@@ -239,11 +240,13 @@ class Map():
                     drone_loc.append(list((x * 32, y * 32)))
                 if element == "g":
                     grass_loc.append(list((x*32,y*32)))
+                if element == "s":
+                    spike_loc.append(list((x*32,y*32)))
                 if element != "0" and element != "t" and element != "d" and element != "g":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
-        return tile_rects, tree_loc, drone_loc, grass_loc
+        return tile_rects, tree_loc, drone_loc, grass_loc, spike_loc
 
 class Drones():
     def __init__(self, x, y, height, width, drone_animation, snow_ball_img) -> None:
@@ -402,7 +405,42 @@ class Drone_Bullets():
     def get_rect(self):
         return self.rect
 
-
+#Spike
+class Spike():
+    def __init__(self, x, y, width, height, image) -> None:
+        self.rect = pygame.rect.Rect(x,y,width,height)
+        self.animation = image
+        self.animation_cooldown = 50
+        self.animation_last_update = 0
+        self.frame = 0
+        self.display_x = 0
+        self.display_y = 0
+        self.speed = 2
+        self.og = [x,y]
+    
+    def draw(self, display, scroll):
+        self.display_x = self.rect.x
+        self.display_y = self.rect.y
+        self.rect.x -= scroll[0]
+        self.rect.y -= scroll[1]
+        display.blit(self.animation[self.frame], self.rect)
+        self.rect.x = self.display_x
+        self.rect.y = self.display_y
+    
+    def move(self, time):
+        if time - self.animation_last_update > self.animation_cooldown:
+            self.frame += 1
+            if self.frame > 1:
+                self.frame = 0
+            self.rect.y -= self.speed
+            self.animation_last_update = time
+        if self.rect.y < self.og[1] - 4:
+            self.speed = -2
+        if self.rect.y > self.og[1] + 4:
+            self.speed = 2
+    
+    def get_rect(self) -> pygame.rect.Rect:
+        return self.rect
 #Sparks
 class Spark():
     def __init__(self, loc, angle, speed, color, scale=1, type=0):

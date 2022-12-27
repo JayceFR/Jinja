@@ -33,6 +33,13 @@ def blit_drones(drones, display, scroll, player, time, dt):
         else:
             drones.pop(pos)
 
+def blit_spikes(spikes, display, scroll, player, time):
+    for pos, spike in sorted(enumerate(spikes), reverse=True):
+        spike.move(time)
+        spike.draw(display, scroll)
+        if spike.get_rect().colliderect(player.get_rect()):
+            player.health = 0
+
 def blit_grass(grasses, display, scroll, player):
     for grass in grasses:
         if grass.get_rect().colliderect(player.get_rect()):
@@ -75,6 +82,8 @@ katana = pygame.transform.scale(katana_img, (katana_img.get_width()*1.5, katana_
 katana.set_colorkey((255,255,255))
 snow_ball_img = pygame.image.load("./Assets/Sprites/snow_ball.png").convert_alpha()
 snow_ball_img.set_colorkey((0,0,0))
+spike_img = pygame.image.load("./Assets/Sprites/spike_idle.png").convert_alpha()
+spike_img.set_colorkey((0,0,0))
 #Map
 map = framework.Map("./Assets/Maps/level1.txt", tiles)
 #Player 
@@ -106,7 +115,13 @@ grass_cooldown = 50
 p_sword = Sword.sword(50,50,katana.get_width(),katana.get_height(),katana)
 for x in range(2):
     drone_animation.append(get_image(drone_img, x, 32,32,2, (0,0,0)))
-#drone = framework.Drones(60, 30, drone_animation[0].get_width(), drone_animation[1].get_height(), drone_animation)
+#Spikes
+spike_loc = []
+spike_spawn = True
+spikes = []
+spike_animation = []
+for x in range(2):
+    spike_animation.append(get_image(spike_img, x, 7, 13, 4.6, (0,0,0)))
 #Background Stripes 
 bg = backg.background()
 bg_particle_effect = bg_particles.Master()
@@ -147,7 +162,7 @@ while run:
             lightning = False
     display.blit(blur_surf, (0,0))
     #Blitting The Map
-    tile_rects, tree_locs, drone_loc, grass_loc = map.blit_map(display, scroll)
+    tile_rects, tree_locs, drone_loc, grass_loc, spike_loc = map.blit_map(display, scroll)
     #Creating Items
     if drone_spawn:
         drones = create_drones(drones, drone_loc, drone_animation, snow_ball_img)
@@ -159,9 +174,14 @@ while run:
                 x_pos += 2.5
                 grasses.append(g.grass([x_pos, loc[1]+14], 2, 18))
         grass_spawn = False
+    if spike_spawn:
+        for loc in spike_loc:
+            spikes.append(framework.Spike(loc[0], loc[1], spike_animation[0].get_width(), spike_animation[0].get_height(), spike_animation ))
+        spike_spawn = False
     #Blitting Items before Blitting Player
     blit_tree(display, tree_img, tree_locs, scroll)
     blit_drones(drones, display, scroll, player, time, dt)
+    blit_spikes(spikes, display, scroll, player, time)
     #Movement of grass
     if time - grass_last_update > grass_cooldown:
         for grass in grasses:
