@@ -336,6 +336,8 @@ class Drones():
         self.display_y = self.rect.y
         self.rect.x -= scroll[0]
         self.rect.y -= scroll[1]
+        self.rect.x -= 25
+        self.rect.y -= 16
         display.blit(self.drone_animation[self.frame], (self.rect.x, self.rect.y))
         self.draw_health_bar(display)
         #pygame.draw.rect(display, (255,0,0), self.rect)
