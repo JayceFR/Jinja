@@ -134,6 +134,10 @@ lightning_colors = [[(0,64,0), (0,128,64), (0,255,0)], [(255,0,0), (128,0,0), (1
 lightning_color = 0
 lightning_last_update = 0
 lightning_alpha = 255
+#Wave
+wave = framework.Wave([0,100], [200,100])
+wave_cooldown = 200
+wave_last_update = 0
 #Time
 last_time = t.time()
 while run:
@@ -161,6 +165,8 @@ while run:
         if lightning_alpha < 100:
             lightning = False
     display.blit(blur_surf, (0,0))
+    #blitting the Wave
+    wave.recursive_call(display, scroll, time)
     #Blitting The Map
     tile_rects, tree_locs, drone_loc, grass_loc, spike_loc = map.blit_map(display, scroll)
     #Creating Items

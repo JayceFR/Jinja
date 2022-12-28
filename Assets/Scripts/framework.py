@@ -505,3 +505,71 @@ class Spark():
                  self.loc[1] - math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
             ]
             pygame.draw.polygon(surf, self.color, points)
+
+#Wave
+class Wave():
+    def __init__(self, start_pos, end_pos) -> None:
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.create_atoms = True
+        self.atoms = []
+        self.atom_loc = []
+        self.colliding_cooldown = 200
+        self.colliding_last_update = 0
+        self.part = 1
+    
+    def recursive_call(self, display, scroll, time):
+        self.atom_loc = []
+        #self.atom_loc.append([0,150])
+        if self.create_atoms:
+            for x in range(self.start_pos[0], self.start_pos[1]):
+                self.atoms.append(Atom(x,self.start_pos[1]))
+            self.atoms[0].my_turn = True
+            self.create_atoms = False
+        if time - self.colliding_last_update > self.colliding_cooldown:
+            self.part += 1
+            if self.part > len(self.atoms) - 1:
+                self.part = 0
+            self.colliding_last_update = time
+        for pos, atom in sorted(enumerate(self.atoms), reverse=True):
+            atom.move(time)
+            if atom.energy_transfer:
+                atom.energy_transfer = False
+                if pos + 1 < len(self.atoms):
+                    self.atoms[pos+1].my_turn = True
+            self.atom_loc.append(atom.get_loc())
+            self.atom_loc.append(list((atom.get_x(), 150)))
+            
+        #self.atom_loc.append([self.end_pos[0]//2,150])
+        pygame.draw.polygon(display, (0,0,0), self.atom_loc)
+
+class Atom():
+    def __init__(self, x, y) -> None:
+        self.x = x 
+        self.y = y
+        self.speed = 5
+        self.angle = 0 
+        self.angle_update_cooldown = 200
+        self.angle_last_update = 0
+        self.energy_transfer = False
+        self.my_turn = False
+    
+    def move(self, time):
+        if self.my_turn:
+            self.y += math.sin(math.radians(self.angle)) * self.speed
+            self.angle += 5
+            if self.angle == 90:
+                self.energy_transfer = True
+            if self.angle == 360:
+                self.angle = 0
+        
+            
+    
+    def draw(self, display, scroll):
+        pygame.draw.circle(display, (0,0,0), (self.x - scroll[0], self.y - scroll[1]), 1)
+    
+    def get_loc(self):
+        return [self.x, self.y]
+    
+    def get_x(self):
+        return self.x
