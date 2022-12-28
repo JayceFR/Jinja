@@ -78,7 +78,7 @@ def game_loop(level):
     player_img.set_colorkey((255,255,255))
     player_idle_img = pygame.image.load("./Assets/Sprites/player_idle.png").convert_alpha()
     player_run_img = pygame.image.load("./Assets/Sprites/player_run.png").convert_alpha()
-    drone_img = pygame.image.load("./Assets/Sprites/drone.png").convert_alpha()
+    #drone_img = pygame.image.load("./Assets/Sprites/drone.png").convert_alpha()
     katana_img = pygame.image.load("./Assets/Sprites/katana.png").convert_alpha()
     katana = katana_img.copy()
     katana = pygame.transform.scale(katana_img, (katana_img.get_width()*1.5, katana_img.get_height()*1.5))
@@ -89,6 +89,12 @@ def game_loop(level):
     flake_img.set_colorkey((0,0,0))
     spike_img = pygame.image.load("./Assets/Sprites/spike_idle.png").convert_alpha()
     spike_img.set_colorkey((0,0,0))
+    snow_flake1_img = pygame.image.load("./Assets/Sprites/snow_flake1.png").convert_alpha()
+    snow_flake1 = snow_flake1_img.copy()
+    snow_flake1 = pygame.transform.scale(snow_flake1_img, (snow_flake1_img.get_width()*2, snow_flake1.get_height()*2))
+    snow_flake2_img = pygame.image.load("./Assets/Sprites/snow_flake2.png").convert_alpha()
+    snow_flake2 = snow_flake2_img.copy()
+    snow_flake2 = pygame.transform.scale(snow_flake2_img, (snow_flake2_img.get_width()*2, snow_flake2_img.get_height()*2))
     #Map
     map = framework.Map("./Assets/Maps/"+level, tiles)
     #Player
@@ -106,9 +112,9 @@ def game_loop(level):
     #Scroll
     true_scroll = [0,0]
     scroll = [0,0]
-    #Drones
+    #Flakes
     drones = []
-    drone_animation = []
+    drone_animation = [snow_flake1, snow_flake2]
     drone_spawn = True
     #Grass
     grasses = []
@@ -118,8 +124,6 @@ def game_loop(level):
     grass_cooldown = 50
     #Sword
     p_sword = Sword.sword(50,50,katana.get_width(),katana.get_height(),katana)
-    for x in range(2):
-        drone_animation.append(get_image(drone_img, x, 32,32,2, (0,0,0)))
     #Spikes
     spike_loc = []
     spike_spawn = True
@@ -201,9 +205,12 @@ def game_loop(level):
         blit_tree(display, tree_img, tree_locs, scroll)
         dt = blit_drones(drones, display, scroll, player, time, dt)
         blit_spikes(spikes, display, scroll, player, time)
-        for polly in pollies:
-            dt = polly.move(player, scroll, display, time, dt)
-            polly.draw(display, scroll)
+        for pos, polly in sorted(enumerate(pollies), reverse=True):
+            if polly.alive:
+                dt = polly.move(player, scroll, display, time, dt)
+                polly.draw(display, scroll)
+            else:
+                pollies.pop(pos)
         #Movement of grass
         if time - grass_last_update > grass_cooldown:
             for grass in grasses:
@@ -227,7 +234,18 @@ def game_loop(level):
                                 scroll[0] += random.randint(-20,20)
                                 scroll[1] += random.randint(-20,20)
                                 for x in range(20):
-                                    sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5),(121, 36, 36), 1, 0))
+                                    sparks.append(framework.Spark([drone.get_rect().x - scroll[0] + drone_animation[0].get_width()//2, drone.get_rect().y - scroll[1] + drone_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5),(95, 205, 228), 1, 0))
+                    if pollies != []:
+                        for polly in pollies:
+                            if attack[0].colliderect(polly.get_rect()):
+                                polly.health -= 2
+                                if polly.health <= 0:
+                                    polly.alive = False
+                                dt = 0.2
+                                scroll[0] += random.randint(-20,20)
+                                scroll[1] += random.randint(-20,20)
+                                for x in range(20):
+                                    sparks.append(framework.Spark([polly.get_rect().x - scroll[0] + polly_img.get_width()//2, polly.get_rect().y - scroll[1] + polly_img.get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5),(255, 255, 255), 1, 0))
                 else:
                     player_attacks.pop(pos)
         #Player Dash

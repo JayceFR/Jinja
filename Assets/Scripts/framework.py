@@ -278,6 +278,7 @@ class Drones():
         self.snow_ball_img = snow_ball_img
         self.frame_last_update = 0
         self.drone_animation = drone_animation
+        self.image = self.drone_animation[random.randint(0,1)]
         self.max_depth = 10
         self.fire_cooldown = 2000
         self.fire_last_update = 0
@@ -300,11 +301,6 @@ class Drones():
         #point = (self.rect.x, player.get_rect().y)
         if self.health <= 0:
             self.alive = False
-        if time - self.frame_last_update > self.frame_update_cooldown:
-            self.frame += 1
-            if self.frame > 1:
-                self.frame = 0
-            self.frame_last_update = time
         point = (player.get_rect().x , self.rect.y)
         #pygame.draw.line(display, (255,0,0), (self.rect.x - scroll[0], self.rect.y-scroll[1]), (point[0]  - scroll[0], point[1] - scroll[1]))
         #pygame.draw.line(display, (255,255,0), (point[0]  - scroll[0], point[1] - scroll[1]), (player.get_rect().x  - scroll[0], player.get_rect().y - scroll[1]))
@@ -362,7 +358,7 @@ class Drones():
         self.rect.y -= scroll[1]
         self.rect.x -= 25
         self.rect.y -= 16
-        display.blit(self.drone_animation[self.frame], (self.rect.x, self.rect.y))
+        display.blit(self.image, (self.rect.x, self.rect.y))
         self.draw_health_bar(display)
         #pygame.draw.rect(display, (255,0,0), self.rect)
         self.rect.x = self.display_x
@@ -387,16 +383,23 @@ class Polly():
         self.fire_last_update = 0
         self.width = width
         self.height = height
-        self.fire_cooldown = 800
+        self.fire_cooldown = 2500
         self.sparks = []
         self.snow_balls = []
         self.snow_ball_img = snow_ball_img
         self.player_dup_rect = 0
+        self.alive = True
         self.display_x = 0
         self.display_y = 0
+        self.health = 100
         self.polly_img = polly_img
         self.trails = []
 
+    def draw_health_bar(self, display):
+        ratio = self.health / 100
+        pygame.draw.rect(display, (99,155,255), (self.rect.x - 20, self.rect.y - 2, 104  , 17//2))
+        pygame.draw.rect(display, (255,0,0), (self.rect.x - 18, self.rect.y, 100  , 15//2))
+        pygame.draw.rect(display, (231,169,107), (self.rect.x - 18, self.rect.y, 100 * ratio , 15//2))
 
     def move(self, player, scroll, display, time, dt):
         self.player_dup_rect = pygame.rect.Rect(player.get_rect().x, player.get_rect().y, player.get_width()*2, player.get_height()*2)
@@ -456,8 +459,12 @@ class Polly():
             flip = pygame.transform.flip(self.polly_img, True, False)
             flip.set_colorkey((0,0,0))
             display.blit(flip, self.rect)
+        self.draw_health_bar(display)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
+
+    def get_rect(self):
+        return self.rect
 
 
 class Drone_Bullets():
