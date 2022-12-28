@@ -256,7 +256,7 @@ class Map():
                     spike_loc.append(list((x*32,y*32)))
                 if element == "p":
                     polly_loc.append(list((x*32,y*32)))
-                if element != "0" and element != "t" and element != "d" and element != "g":
+                if element != "0" and element != "t" and element != "d" and element != "g" and element != "p":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1

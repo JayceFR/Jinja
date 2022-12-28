@@ -299,14 +299,20 @@ def game_loop(level):
         if player.health <=0 :
             player.alive = False
             sparks.append(framework.Spark([player.get_rect().x - scroll[0] + player_idle_animation[0].get_width()//2, player.get_rect().y - scroll[1] + player_idle_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(6, 7),(125, 112, 113), 10, 0))
+        else:
+            #Checking whether the player has completed the level
+            if drones == [] and pollies == []:
+                run = False
+                print("I am here")
         surf = pygame.transform.scale(display, (s_width, s_height))
         screen.blit(surf, (0,0))
         pygame.display.update()
+    return 0
 
 def main_loop():
     #0 -> Player has completed the level
     #1 -> Player has closed the Game
-    levels = ["level1.txt"]
+    levels = ["level1.txt", "level2.txt"]
     current_level = 0
     while current_level < len(levels):
         level_done = game_loop(levels[current_level])
