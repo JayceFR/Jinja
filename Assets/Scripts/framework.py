@@ -8,10 +8,13 @@ class Player():
         self.speed = 3
         self.acceleration = 0.03
         self.deceleration = 0.5
-        self.gravity = 5
+        self.gravity = 9
         self.moving_right = False
+        self.width = width
+        self.height = height
         self.moving_left = False
         self.jump = False
+        self.alive = True
         self.jump_frame = 0
         self.jump_cooldown = 200
         self.jump_last_update = 0
@@ -40,7 +43,13 @@ class Player():
             if self.rect.colliderect(tile):
                 hitlist.append(tile)
         return hitlist
-    
+
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.height
+
     def collision_checker(self, tiles):
         collision_types = {"top": False, "bottom": False, "right": False, "left": False}
         self.rect.x += self.movement[0]
@@ -62,7 +71,7 @@ class Player():
                 self.rect.top = tile.bottom
                 collision_types["top"] = True
         return collision_types
-    
+
     def draw_health_bar(self, display):
         ratio = self.health / 100
         pygame.draw.rect(display, (99,155,255), (19, 19, 184  , 17))
@@ -90,7 +99,7 @@ class Player():
             self.frame += 1
             if self.frame > 3:
                 self.frame = 0
-        
+
         if not self.moving_left and not self.moving_right:
             self.frame_cooldown = 500
             self.idle = True
@@ -120,6 +129,7 @@ class Player():
             else:
                 if not self.is_dash:
                     self.movement[1] += self.gravity * dt
+
         if not self.moving_left and not self.moving_right:
             if self.was_moving_right:
                 self.speed -= self.deceleration
@@ -147,9 +157,10 @@ class Player():
 
         self.collision_type = self.collision_checker(tiles)
 
+
     def draw(self, display, scroll):
-        if self.rect.y > 800:
-            self.rect.y = -300
+        if self.rect.y > 600:
+            self.rect.y = -600
         self.draw_health_bar(display)
         self.display_x = self.rect.x
         self.display_y = self.rect.y
@@ -174,16 +185,16 @@ class Player():
         self.rect.x = self.display_x
         self.rect.y = self.display_y
         return self.turn_left
-    
+
     def chech_for_dash(self):
         if self.collision_type['top'] or self.collision_type['bottom'] or self.collision_type['right'] or self.collision_type['left']:
             return True
         else:
             return False
-    
+
     def dash(self, angle, m_pos, scroll, time):
         if self.rect.y - scroll[1] > m_pos[1]:
-            if self.rect.x - scroll[0] > m_pos[0]: 
+            if self.rect.x - scroll[0] > m_pos[0]:
                 self.facing_right = False
                 angle = 180 - angle
         else:
@@ -195,14 +206,14 @@ class Player():
         self.is_dash = True
         self.dash_last_update = time
         self.dash_angle = angle
-    
+
     def get_rect(self):
         return self.rect
 
 #Map
 class Map():
     def __init__(self, map_loc, tiles):
-        self.map = [] 
+        self.map = []
         self.tiles = tiles
         f = open(map_loc, "r")
         data = f.read()
@@ -210,17 +221,18 @@ class Map():
         data = data.split("\n")
         for row in data:
             self.map.append(list(row))
-    
+
     def blit_map(self, window, scroll):
         tile_rects = []
         tree_loc = []
         drone_loc = []
         grass_loc = []
         spike_loc = []
+        polly_loc = []
         x = 0
-        y = 0 
+        y = 0
         for row in self.map:
-            x = 0 
+            x = 0
             for element in row:
                 if element == "1":
                     window.blit(self.tiles[0], (x * 32 - scroll[0], y * 32 - scroll[1]) )
@@ -242,11 +254,13 @@ class Map():
                     grass_loc.append(list((x*32,y*32)))
                 if element == "s":
                     spike_loc.append(list((x*32,y*32)))
+                if element == "p":
+                    polly_loc.append(list((x*32,y*32)))
                 if element != "0" and element != "t" and element != "d" and element != "g":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
-        return tile_rects, tree_loc, drone_loc, grass_loc, spike_loc
+        return tile_rects, tree_loc, drone_loc, grass_loc, spike_loc, polly_loc
 
 class Drones():
     def __init__(self, x, y, height, width, drone_animation, snow_ball_img) -> None:
@@ -267,18 +281,22 @@ class Drones():
         self.max_depth = 10
         self.fire_cooldown = 2000
         self.fire_last_update = 0
+        self.particle_check_x = 0
+        self.particle_check_y = 0
         self.speed = 3
         self.offset = [0,0]
         self.trails = []
         self.sparks = []
-    
+        self.player_dup_rect = 0
+
     def draw_health_bar(self, display):
         ratio = self.health / 100
         pygame.draw.rect(display, (99,155,255), (self.rect.x - 20, self.rect.y - 2, 104  , 17//2))
         pygame.draw.rect(display, (255,0,0), (self.rect.x - 18, self.rect.y, 100  , 15//2))
         pygame.draw.rect(display, (69,40,60), (self.rect.x - 18, self.rect.y, 100 * ratio , 15//2))
-    
+
     def move(self, scroll, player, time, display, dt):
+        self.player_dup_rect = pygame.rect.Rect(player.get_rect().x, player.get_rect().y, player.get_width()*2, player.get_height()*2)
         #point = (self.rect.x, player.get_rect().y)
         if self.health <= 0:
             self.alive = False
@@ -297,7 +315,7 @@ class Drones():
             if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
                 self.facing_right = False
                 angle = 180 - angle
-        else: 
+        else:
             if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
                 angle = 180 + angle
             else:
@@ -314,7 +332,7 @@ class Drones():
             self.rect.x = self.og_pos[0] - 100
         if time - self.fire_last_update > self.fire_cooldown:
             for x in range(5):
-                self.sparks.append(Spark([self.rect.x - scroll[0] + self.width//2, self.rect.y - scroll[1] + self.height//2],math.radians(random.randint(0,180)), random.randint(4,6),(125, 112, 123), 1, 0))
+                self.sparks.append(Spark([self.rect.x - scroll[0] + self.width//2, self.rect.y - scroll[1] + self.height//2],math.radians(random.randint(0,180)), random.randint(4,6),(0, 162, 232), 1, 0))
             self.fire_particles.append(Drone_Bullets(self.rect.x + self.offset[0] , self.rect.y + self.offset[1] , 5, 5, angle, time, self.snow_ball_img))
             self.fire_last_update = time
         if self.fire_particles != []:
@@ -322,6 +340,8 @@ class Drones():
                 trail = particle.move(time)
                 if particle.get_rect().colliderect(player.get_rect()):
                     player.health -= 5
+                if particle.get_rect().colliderect(self.player_dup_rect):
+                    dt = 0.2
                 particle.draw(display, (self.rect.x - scroll[0] + self.offset[0]  , self.rect.y - scroll[1] + self.offset[1] ), scroll)
                 if trail != None:
                     self.trails.append(trail)
@@ -333,6 +353,7 @@ class Drones():
                 spark.draw(display)
                 if not spark.alive:
                     self.sparks.pop(i)
+        return dt
 
     def draw(self, display, scroll):
         self.display_x = self.rect.x
@@ -348,16 +369,97 @@ class Drones():
         self.rect.y = self.display_y
         if self.trails != []:
             for pos, trail in sorted(enumerate(self.trails), reverse=True):
-                pygame.draw.circle(display, (255,255,255), (trail[0] - scroll[0], trail[1] - scroll[1]), trail[2])
+                pygame.draw.circle(display, (74,201,255), (trail[0] - scroll[0], trail[1] - scroll[1]), trail[2])
                 trail[2] -= 0.5
                 if trail[2] < 1:
                     self.trails.pop(pos)
 
-        
-    
+
+
     def get_rect(self):
         return self.rect
-    
+
+class Polly():
+    def __init__(self, x, y, width, height, snow_ball_img, polly_img ) -> None:
+        self.rect = pygame.rect.Rect(x, y, width, height)
+        self.offset = [32,11]
+        self.facing_right = True
+        self.fire_last_update = 0
+        self.width = width
+        self.height = height
+        self.fire_cooldown = 800
+        self.sparks = []
+        self.snow_balls = []
+        self.snow_ball_img = snow_ball_img
+        self.player_dup_rect = 0
+        self.display_x = 0
+        self.display_y = 0
+        self.polly_img = polly_img
+        self.trails = []
+
+
+    def move(self, player, scroll, display, time, dt):
+        self.player_dup_rect = pygame.rect.Rect(player.get_rect().x, player.get_rect().y, player.get_width()*2, player.get_height()*2)
+        point = (player.get_rect().x , self.rect.y + 15)
+        #pygame.draw.line(display, (255,0,0), (self.rect.x - scroll[0], self.rect.y-scroll[1]+ 15), (point[0]  - scroll[0], point[1] - scroll[1]))
+        #pygame.draw.line(display, (255,255,0), (point[0]  - scroll[0], point[1] - scroll[1] ), (player.get_rect().x  - scroll[0], player.get_rect().y - scroll[1] + 15))
+        l1 = math.sqrt(math.pow((point[0] - self.rect.x - self.offset[0]), 2) + math.pow((point[1] - self.rect.y + self.offset[1]), 2))
+        l2 = math.sqrt(math.pow((player.get_rect().x - point[0] - self.offset[0]), 2) + math.pow((player.get_rect().y - point[1] + self.offset[1] ), 2))
+        angle = math.degrees(math.atan2(l2, l1))
+        if self.rect.y - scroll[1] > player.get_rect().y - scroll[1]:
+            if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
+                self.facing_right = False
+                angle = 180 - angle
+            else:
+                self.facing_right = True
+        else:
+            if self.rect.x - scroll[0] > player.get_rect().x - scroll[0]:
+                angle = 180 + angle
+                self.facing_right = False
+            else:
+                angle = 360 - angle
+                self.facing_right = True
+        if time - self.fire_last_update > self.fire_cooldown:
+            for x in range(5):
+                self.sparks.append(Spark([self.rect.x - scroll[0] + self.width//2, self.rect.y - scroll[1] + self.height//2],math.radians(random.randint(0,180)), random.randint(4,6),(125, 112, 123), 1, 0))
+            self.snow_balls.append(Drone_Bullets(self.rect.x + self.offset[0] , self.rect.y + self.offset[1] , 5, 5, angle, time, self.snow_ball_img))
+            self.fire_last_update = time
+        if self.snow_balls != []:
+            for pos, particle in sorted(enumerate(self.snow_balls), reverse=True):
+                trail = particle.move(time)
+                if particle.get_rect().colliderect(player.get_rect()):
+                    player.health -= 5
+                if particle.get_rect().colliderect(self.player_dup_rect):
+                    dt = 0.2
+                particle.draw(display, (self.rect.x - scroll[0] + self.offset[0]  , self.rect.y - scroll[1] + self.offset[1] ), scroll)
+                if trail != None:
+                    self.trails.append(trail)
+                if not particle.alive:
+                    self.snow_balls.pop(pos)
+        if self.sparks != []:
+            for i, spark in sorted(enumerate(self.sparks), reverse=True):
+                spark.move(dt)
+                spark.draw(display)
+                if not spark.alive:
+                    self.sparks.pop(i)
+        return dt
+
+    def draw(self, display, scroll):
+        self.display_x = self.rect.x
+        self.display_y = self.rect.y
+        self.rect.x -= scroll[0]
+        self.rect.y -= scroll[1]
+        if self.facing_right:
+            display.blit(self.polly_img, self.rect)
+        else:
+            flip = self.polly_img.copy()
+            flip = pygame.transform.flip(self.polly_img, True, False)
+            flip.set_colorkey((0,0,0))
+            display.blit(flip, self.rect)
+        self.rect.x = self.display_x
+        self.rect.y = self.display_y
+
+
 class Drone_Bullets():
     def __init__(self, x, y, width, height, angle, time, snow_ball_img) -> None:
         self.rect = pygame.rect.Rect(x,y,width,height)
@@ -373,7 +475,7 @@ class Drone_Bullets():
         self.trail_last_update = 0
         self.trail_loc = []
         self.snow_ball_img = snow_ball_img
-    
+
     def move(self, current_time):
         self.trail_loc = []
         if current_time - self.trail_last_update > self.trail_cooldown:
@@ -390,7 +492,7 @@ class Drone_Bullets():
             return None
         #if self.rect.y < 0 or self.rect.y > 900 or self.rect.x < 0 or self.rect.x > 20000:
         #    self.alive = False
-    
+
     def draw(self, display, start_pos, scroll):
         self.display_x = self.rect.x
         self.display_y = self.rect.y
@@ -401,7 +503,7 @@ class Drone_Bullets():
         display.blit(self.snow_ball_img, self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
-    
+
     def get_rect(self):
         return self.rect
 
@@ -417,7 +519,7 @@ class Spike():
         self.display_y = 0
         self.speed = 2
         self.og = [x,y]
-    
+
     def draw(self, display, scroll):
         self.display_x = self.rect.x
         self.display_y = self.rect.y
@@ -426,7 +528,7 @@ class Spike():
         display.blit(self.animation[self.frame], self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
-    
+
     def move(self, time):
         if time - self.animation_last_update > self.animation_cooldown:
             self.frame += 1
@@ -438,7 +540,7 @@ class Spike():
             self.speed = -2
         if self.rect.y > self.og[1] + 4:
             self.speed = 2
-    
+
     def get_rect(self) -> pygame.rect.Rect:
         return self.rect
 #Sparks
@@ -505,71 +607,3 @@ class Spark():
                  self.loc[1] - math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
             ]
             pygame.draw.polygon(surf, self.color, points)
-
-#Wave
-class Wave():
-    def __init__(self, start_pos, end_pos) -> None:
-        self.start_pos = start_pos
-        self.end_pos = end_pos
-        self.create_atoms = True
-        self.atoms = []
-        self.atom_loc = []
-        self.colliding_cooldown = 200
-        self.colliding_last_update = 0
-        self.part = 1
-    
-    def recursive_call(self, display, scroll, time):
-        self.atom_loc = []
-        #self.atom_loc.append([0,150])
-        if self.create_atoms:
-            for x in range(self.start_pos[0], self.start_pos[1]):
-                self.atoms.append(Atom(x,self.start_pos[1]))
-            self.atoms[0].my_turn = True
-            self.create_atoms = False
-        if time - self.colliding_last_update > self.colliding_cooldown:
-            self.part += 1
-            if self.part > len(self.atoms) - 1:
-                self.part = 0
-            self.colliding_last_update = time
-        for pos, atom in sorted(enumerate(self.atoms), reverse=True):
-            atom.move(time)
-            if atom.energy_transfer:
-                atom.energy_transfer = False
-                if pos + 1 < len(self.atoms):
-                    self.atoms[pos+1].my_turn = True
-            self.atom_loc.append(atom.get_loc())
-            self.atom_loc.append(list((atom.get_x(), 150)))
-            
-        #self.atom_loc.append([self.end_pos[0]//2,150])
-        pygame.draw.polygon(display, (0,0,0), self.atom_loc)
-
-class Atom():
-    def __init__(self, x, y) -> None:
-        self.x = x 
-        self.y = y
-        self.speed = 5
-        self.angle = 0 
-        self.angle_update_cooldown = 200
-        self.angle_last_update = 0
-        self.energy_transfer = False
-        self.my_turn = False
-    
-    def move(self, time):
-        if self.my_turn:
-            self.y += math.sin(math.radians(self.angle)) * self.speed
-            self.angle += 5
-            if self.angle == 90:
-                self.energy_transfer = True
-            if self.angle == 360:
-                self.angle = 0
-        
-            
-    
-    def draw(self, display, scroll):
-        pygame.draw.circle(display, (0,0,0), (self.x - scroll[0], self.y - scroll[1]), 1)
-    
-    def get_loc(self):
-        return [self.x, self.y]
-    
-    def get_x(self):
-        return self.x
