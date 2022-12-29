@@ -375,6 +375,75 @@ class Drones():
     def get_rect(self):
         return self.rect
 
+class Gifts():
+    def __init__(self, x, y, width, height, image, random_number):
+        self.rect = pygame.rect.Rect(x, y, width, height)
+        self.movement = [0,0]
+        self.gravity = 5
+        self.width = width
+        self.height = height
+        self.random_number = random_number
+        self.image = image
+        self.display_x = 0
+        self.display_y = 0
+        self.collision_types = {}
+
+    def collision_test(self, tiles):
+        hitlist = []
+        for tile in tiles:
+            if self.rect.colliderect(tile):
+                hitlist.append(tile)
+        return hitlist
+
+    def get_pos(self):
+        return self.random_number
+
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.height
+
+    def collision_checker(self, tiles):
+        collision_types = {"top": False, "bottom": False, "right": False, "left": False}
+        self.rect.x += self.movement[0]
+        hit_list = self.collision_test(tiles)
+        for tile in hit_list:
+            if self.movement[0] > 0:
+                self.rect.right = tile.left
+                collision_types["right"] = True
+            elif self.movement[0] < 0:
+                self.rect.left = tile.right
+                collision_types["left"] = True
+        self.rect.y += self.movement[1]
+        hit_list = self.collision_test(tiles)
+        for tile in hit_list:
+            if self.movement[1] > 0:
+                self.rect.bottom = tile.top
+                collision_types["bottom"] = True
+            if self.movement[1] < 0:
+                self.rect.top = tile.bottom
+                collision_types["top"] = True
+        return collision_types
+
+    def move(self, tiles):
+        self.movement = [0,0]
+        self.movement[1] += self.gravity
+        self.collision_types = self.collision_checker(tiles)
+
+    def draw(self, display, scroll):
+        self.display_x = self.rect.x
+        self.display_y = self.rect.y
+        self.rect.x -= scroll[0]
+        self.rect.y -= scroll[1]
+        display.blit(self.image, self.rect)
+        self.rect.x = self.display_x
+        self.rect.y = self.display_y
+
+    def get_rect(self):
+        return self.rect
+
+
 class Polly():
     def __init__(self, x, y, width, height, snow_ball_img, polly_img ) -> None:
         self.rect = pygame.rect.Rect(x, y, width, height)

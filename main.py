@@ -26,6 +26,11 @@ def create_drones(drones, drone_loc, drone_animation, snow_ball_img):
         drones.append(framework.Drones(loc[0], loc[1], drone_animation[0].get_width(), drone_animation[0].get_height(), drone_animation, snow_ball_img))
     return drones
 
+def create_gift(gifts, x, y, gift_images):
+    random_number = random.randint(0,len(gift_images)-1)
+    gifts.append(framework.Gifts(x,y,gift_images[random_number].get_width(), gift_images[random_number].get_height(), gift_images[random_number], random_number))
+    return gifts
+
 def blit_drones(drones, display, scroll, player, time, dt):
     for pos, drone in sorted(enumerate(drones), reverse=True):
         if drone.alive:
@@ -95,6 +100,9 @@ def game_loop(level):
     snow_flake2_img = pygame.image.load("./Assets/Sprites/snow_flake2.png").convert_alpha()
     snow_flake2 = snow_flake2_img.copy()
     snow_flake2 = pygame.transform.scale(snow_flake2_img, (snow_flake2_img.get_width()*2, snow_flake2_img.get_height()*2))
+    green_gift = pygame.image.load("./Assets/Sprites/green_gift.png").convert_alpha()
+    red_gift = pygame.image.load("./Assets/Sprites/red_gift.png").convert_alpha()
+    blue_gift = pygame.image.load("./Assets/sprites/blue_gift.png").convert_alpha()
     #Map
     map = framework.Map("./Assets/Maps/"+level, tiles)
     #Player
@@ -144,6 +152,10 @@ def game_loop(level):
     polly_img = pygame.transform.scale(polly_img_dup, (polly_img_dup.get_width() * 2, polly_img.get_height() * 2))
     polly_img.set_colorkey((0,0,0))
     polly_spawn = True
+    #Gifts
+    gifts = []
+    gift_images = [green_gift, red_gift, blue_gift]
+    gift_particles = [(170,222,110), (225,128,128), (0,128,255)]
     #BackGround Settings
     lightning = False
     lightning_cooldown = 20000
@@ -203,14 +215,30 @@ def game_loop(level):
             spike_spawn = False
         #Blitting Items before Blitting Player
         blit_tree(display, tree_img, tree_locs, scroll)
-        dt = blit_drones(drones, display, scroll, player, time, dt)
+        #dt = blit_drones(drones, display, scroll, player, time, dt)
+        for pos, drone in sorted(enumerate(drones), reverse=True):
+            if drone.alive:
+                dt = drone.move(scroll, player, time, display, dt)
+                drone.draw(display, scroll)
+            else:
+                create_gift(gifts, drone.get_rect().x, -100 , gift_images)
+                drones.pop(pos)
         blit_spikes(spikes, display, scroll, player, time)
         for pos, polly in sorted(enumerate(pollies), reverse=True):
             if polly.alive:
                 dt = polly.move(player, scroll, display, time, dt)
                 polly.draw(display, scroll)
             else:
+                create_gift(gifts, polly.get_rect().x, 0, gift_images)
                 pollies.pop(pos)
+        if gifts != []:
+            for pos, gift in sorted(enumerate(gifts), reverse = True):
+                gift.move(tile_rects)
+                gift.draw(display, scroll)
+                if gift.get_rect().colliderect(player.get_rect()):
+                    for x in range(20):
+                        sparks.append(framework.Spark([gift.get_rect().x - scroll[0] + gift.get_width()//2, gift.get_rect().y - scroll[1] + gift.get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5), gift_particles[gift.get_pos()], 2, 2))
+                    gifts.pop(pos)
         #Movement of grass
         if time - grass_last_update > grass_cooldown:
             for grass in grasses:
@@ -286,6 +314,9 @@ def game_loop(level):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     player_attacks.append(list((p_sword.attack(), time, 500)))
+            if event.type == pygame.KEYDOWN:
+                if event.key == 107:
+                    player_attacks.append(list((p_sword.attack(), time, 500)))
         #Sparks Blitting
         if sparks != []:
             for i, spark in sorted(enumerate(sparks), reverse=True):
@@ -303,7 +334,6 @@ def game_loop(level):
             #Checking whether the player has completed the level
             if drones == [] and pollies == []:
                 run = False
-                print("I am here")
         surf = pygame.transform.scale(display, (s_width, s_height))
         screen.blit(surf, (0,0))
         pygame.display.update()
