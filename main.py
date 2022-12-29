@@ -61,6 +61,10 @@ def get_image(sheet, frame, width, height, scale, colorkey):
     image.set_colorkey(colorkey)
     return image
 
+def draw_text(text, font, text_col, x, y, display):
+    img = font.render(text, True, text_col)
+    display.blit(img, (x, y))
+
 def game_loop(level):
     #Game Variables
     run = True
@@ -103,8 +107,24 @@ def game_loop(level):
     green_gift = pygame.image.load("./Assets/Sprites/green_gift.png").convert_alpha()
     red_gift = pygame.image.load("./Assets/Sprites/red_gift.png").convert_alpha()
     blue_gift = pygame.image.load("./Assets/sprites/blue_gift.png").convert_alpha()
+    santa_img = pygame.image.load("./Assets/Sprites/santa.png").convert_alpha()
+    santa = santa_img.copy()
+    santa = pygame.transform.scale(santa_img, (santa_img.get_width()*2, santa_img.get_height()*2))
+    arrow_img = pygame.image.load("./Assets/Sprites/arrow.png").convert_alpha()
+    arrow = arrow_img.copy()
+    arrow = pygame.transform.scale(arrow_img, (arrow_img.get_width()*2, arrow_img.get_height() * 2))
+    arrow.set_colorkey((0,0,0))
     #Map
     map = framework.Map("./Assets/Maps/"+level, tiles)
+    #Fonts
+    font = pygame.font.Font("./Assets/Fonts/jayce.ttf", 30)
+    font2 = pygame.font.Font("./Assets/Fonts/jayce.ttf", 25)
+    #Texts
+    tutorial_texts = ["Winja! We are in a crisis ", "Winter is a season of joy ", "It is the time of sharing. But... ", "Winter has been swallowed by evil", "Winter is now against Christmas ", "They have stolen our gifts ", "Only  You  Winja  Can  Save", "Christmas!", "Save The Presents At Any Cost ", "WASD for movement", "Space To Jump", "K or Left-Click to ki.?!", "To Bring Peace", "Remeber! You can Cycle Through", "The Map by Falling", "But The Gifts Can Not!", "Destroy The Winter Sprites And...", "Collect All The Presents", "All The Best Winja" ]
+    current_tutorial_text = 0
+    speech_cooldown = 5000
+    speech_last_update = 0
+
     #Player
     player_idle_animation = []
     player_run_animation = []
@@ -158,11 +178,15 @@ def game_loop(level):
     gift_particles = [(170,222,110), (225,128,128), (0,128,255)]
     #BackGround Settings
     lightning = False
-    lightning_cooldown = 20000
+    lightning_cooldown = 2000
     lightning_colors = [[(0,64,0), (0,128,64), (0,255,0)], [(255,0,0), (128,0,0), (128,64,64)], [(255,255,0), (255,128,64), (255,255,128), (255,128,0)]]
-    lightning_color = 0
+    lightning_color = lightning_colors[0]
     lightning_last_update = 0
     lightning_alpha = 255
+    if level == "game_over.txt":
+        lightning = True
+        for x in range(200):
+            create_gift(gifts, random.randint(50,2000)//2, -200 , gift_images)
     #After Death Settings
     just_died = True
     #Time
@@ -193,7 +217,7 @@ def game_loop(level):
                 lightning = False
         display.blit(blur_surf, (0,0))
         #Blitting The Map
-        tile_rects, tree_locs, drone_loc, grass_loc, spike_loc, polly_loc = map.blit_map(display, scroll)
+        tile_rects, tree_locs, drone_loc, grass_loc, spike_loc, polly_loc, arrow_loc = map.blit_map(display, scroll)
         #Creating Items
         if drone_spawn:
             drones = create_drones(drones, drone_loc, drone_animation, flake_img)
@@ -213,6 +237,9 @@ def game_loop(level):
             for loc in spike_loc:
                 spikes.append(framework.Spike(loc[0], loc[1], spike_animation[0].get_width(), spike_animation[0].get_height(), spike_animation ))
             spike_spawn = False
+        if arrow_loc != []:
+            for loc in arrow_loc:
+                display.blit(arrow, (loc[0] - scroll[0], loc[1] - scroll[1]))
         #Blitting Items before Blitting Player
         blit_tree(display, tree_img, tree_locs, scroll)
         #dt = blit_drones(drones, display, scroll, player, time, dt)
@@ -221,7 +248,7 @@ def game_loop(level):
                 dt = drone.move(scroll, player, time, display, dt)
                 drone.draw(display, scroll)
             else:
-                create_gift(gifts, drone.get_rect().x, -100 , gift_images)
+                create_gift(gifts, drone.get_rect().x, -200 , gift_images)
                 drones.pop(pos)
         blit_spikes(spikes, display, scroll, player, time)
         for pos, polly in sorted(enumerate(pollies), reverse=True):
@@ -231,14 +258,16 @@ def game_loop(level):
             else:
                 create_gift(gifts, polly.get_rect().x, 0, gift_images)
                 pollies.pop(pos)
+
         if gifts != []:
             for pos, gift in sorted(enumerate(gifts), reverse = True):
                 gift.move(tile_rects)
                 gift.draw(display, scroll)
-                if gift.get_rect().colliderect(player.get_rect()):
-                    for x in range(20):
-                        sparks.append(framework.Spark([gift.get_rect().x - scroll[0] + gift.get_width()//2, gift.get_rect().y - scroll[1] + gift.get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5), gift_particles[gift.get_pos()], 2, 2))
-                    gifts.pop(pos)
+                if level != "game_over.txt":
+                    if gift.get_rect().colliderect(player.get_rect()):
+                        for x in range(20):
+                            sparks.append(framework.Spark([gift.get_rect().x - scroll[0] + gift.get_width()//2, gift.get_rect().y - scroll[1] + gift.get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5), gift_particles[gift.get_pos()], 2, 2))
+                        gifts.pop(pos)
         #Movement of grass
         if time - grass_last_update > grass_cooldown:
             for grass in grasses:
@@ -327,13 +356,25 @@ def game_loop(level):
         #Blitting Items After Blitting The Player
         blit_grass(grasses, display, scroll, player)
         #Checking whether player has died
-        if player.health <=0 :
-            player.alive = False
-            sparks.append(framework.Spark([player.get_rect().x - scroll[0] + player_idle_animation[0].get_width()//2, player.get_rect().y - scroll[1] + player_idle_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(6, 7),(125, 112, 113), 10, 0))
+        if level == "tutorial.txt":
+            pygame.draw.rect(display, (0,0,0), pygame.rect.Rect(0,200,600,200))
+            draw_text(tutorial_texts[current_tutorial_text], font2, (255,255,255), 84, 230, display )
+            if current_tutorial_text % 2 == 0:
+                draw_text("Ho Ho Ho Ho Ho ...", font2, (255,0,0), 120, 250, display  )
+            if time - speech_last_update > speech_cooldown:
+                current_tutorial_text += 1
+                if current_tutorial_text >= len(tutorial_texts):
+                    run = False
+                speech_last_update = time
+            display.blit(santa, (10,220))
         else:
-            #Checking whether the player has completed the level
-            if drones == [] and pollies == []:
-                run = False
+            if player.health <=0 :
+                player.alive = False
+                sparks.append(framework.Spark([player.get_rect().x - scroll[0] + player_idle_animation[0].get_width()//2, player.get_rect().y - scroll[1] + player_idle_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(6, 7),(125, 112, 113), 10, 0))
+            else:
+                #Checking whether the player has completed the level
+                if drones == [] and pollies == [] and gifts == []:
+                    run = False
         surf = pygame.transform.scale(display, (s_width, s_height))
         screen.blit(surf, (0,0))
         pygame.display.update()
@@ -342,8 +383,13 @@ def game_loop(level):
 def main_loop():
     #0 -> Player has completed the level
     #1 -> Player has closed the Game
-    levels = ["level1.txt", "level2.txt"]
+    levels = ["tutorial.txt", "level1.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt", "game_over.txt"]
+    #levels = ["level1.txt"]
     current_level = 0
+    #Music
+    pygame.mixer.music.load("./Assets/Music/WinjaBgMusic.wav")
+    pygame.mixer.music.set_volume(0.8)
+    pygame.mixer.music.play(-1)
     while current_level < len(levels):
         level_done = game_loop(levels[current_level])
         if level_done == 0:

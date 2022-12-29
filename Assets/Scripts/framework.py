@@ -229,6 +229,7 @@ class Map():
         grass_loc = []
         spike_loc = []
         polly_loc = []
+        arrow_loc = []
         x = 0
         y = 0
         for row in self.map:
@@ -253,14 +254,16 @@ class Map():
                 if element == "g":
                     grass_loc.append(list((x*32,y*32)))
                 if element == "s":
-                    spike_loc.append(list((x*32,y*32)))
+                    spike_loc.append(list((x*32,y*30)))
                 if element == "p":
                     polly_loc.append(list((x*32,y*32)))
-                if element != "0" and element != "t" and element != "d" and element != "g" and element != "p":
+                if element == "a":
+                    arrow_loc.append(list((x*32,y*32)))
+                if element != "0" and element != "t" and element != "d" and element != "g" and element != "p" and element != "a":
                     tile_rects.append(pygame.rect.Rect(x*32, y*32, 32,32))
                 x += 1
             y += 1
-        return tile_rects, tree_loc, drone_loc, grass_loc, spike_loc, polly_loc
+        return tile_rects, tree_loc, drone_loc, grass_loc, spike_loc, polly_loc, arrow_loc
 
 class Drones():
     def __init__(self, x, y, height, width, drone_animation, snow_ball_img) -> None:
@@ -279,7 +282,7 @@ class Drones():
         self.frame_last_update = 0
         self.drone_animation = drone_animation
         self.image = self.drone_animation[random.randint(0,1)]
-        self.max_depth = 10
+        self.max_depth = y+5
         self.fire_cooldown = 2000
         self.fire_last_update = 0
         self.particle_check_x = 0
