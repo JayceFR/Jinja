@@ -126,9 +126,13 @@ def game_loop(level):
     speech_last_update = 0
     #SoundEffects
     explosion = pygame.mixer.Sound("./Assets/Music/explosion.wav")
+    explosion.set_volume(0.7)
     hit = pygame.mixer.Sound("./Assets/Music/hit.wav")
+    hit.set_volume(0.5)
     jump = pygame.mixer.Sound("./Assets/Music/jump.wav")
+    jump.set_volume(0.5)
     pickup = pygame.mixer.Sound("./Assets/Music/pickup.wav")
+    pickup.set_volume(0.6)
     #Player
     player_idle_animation = []
     player_run_animation = []
@@ -180,6 +184,8 @@ def game_loop(level):
     gifts = []
     gift_images = [green_gift, red_gift, blue_gift]
     gift_particles = [(170,222,110), (225,128,128), (0,128,255)]
+    total_number_of_gifts = 0
+    number_of_gifts_found = 0
     #BackGround Settings
     lightning = False
     lightning_cooldown = 2000
@@ -226,6 +232,7 @@ def game_loop(level):
         if drone_spawn:
             drones = create_drones(drones, drone_loc, drone_animation, flake_img)
             drone_spawn = False
+            total_number_of_gifts += len(drones)
         if grass_spawn:
             for loc in grass_loc:
                 x_pos = loc[0]
@@ -237,6 +244,7 @@ def game_loop(level):
             for loc in polly_loc:
                 pollies.append(framework.Polly(loc[0], loc[1], polly_img.get_width(), polly_img.get_height(), snow_ball_img, polly_img))
             polly_spawn = False
+            total_number_of_gifts += len(pollies)
         if spike_spawn:
             for loc in spike_loc:
                 spikes.append(framework.Spike(loc[0], loc[1], spike_animation[0].get_width(), spike_animation[0].get_height(), spike_animation ))
@@ -275,6 +283,7 @@ def game_loop(level):
                         for x in range(20):
                             sparks.append(framework.Spark([gift.get_rect().x - scroll[0] + gift.get_width()//2, gift.get_rect().y - scroll[1] + gift.get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5), gift_particles[gift.get_pos()], 2, 2))
                         gifts.pop(pos)
+                        number_of_gifts_found += 1
         #Movement of grass
         if time - grass_last_update > grass_cooldown:
             for grass in grasses:
@@ -387,6 +396,8 @@ def game_loop(level):
                 draw_text("Space To Restart ", font, (230, 195,105), 130, 150, display)
                 sparks.append(framework.Spark([player.get_rect().x - scroll[0] + player_idle_animation[0].get_width()//2, player.get_rect().y - scroll[1] + player_idle_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(6, 7),(125, 112, 113), 10, 0))
             else:
+                display.blit(red_gift, (410,10))
+                draw_text(str(number_of_gifts_found) + " / " + str(total_number_of_gifts), font2, (255,255,255), 440, 10, display)
                 #Checking whether the player has completed the level
                 if drones == [] and pollies == [] and gifts == []:
                     run = False
@@ -406,7 +417,7 @@ def main_loop():
     current_level = 0
     #Music
     pygame.mixer.music.load("./Assets/Music/WinjaBgMusic.wav")
-    pygame.mixer.music.set_volume(0.8)
+    pygame.mixer.music.set_volume(0.6)
     pygame.mixer.music.play(-1)
     while current_level < len(levels):
         level_done = game_loop(levels[current_level])
