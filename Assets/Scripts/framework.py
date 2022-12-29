@@ -3,7 +3,7 @@ import math
 import random
 
 class Player():
-    def __init__(self,x, y, width, height, player_idle, player_run):
+    def __init__(self,x, y, width, height, player_idle, player_run, jump_sound):
         self.rect = pygame.rect.Rect(x, y, width, height)
         self.speed = 3
         self.acceleration = 0.03
@@ -13,6 +13,7 @@ class Player():
         self.width = width
         self.height = height
         self.moving_left = False
+        self.jump_sound = jump_sound
         self.jump = False
         self.alive = True
         self.jump_frame = 0
@@ -34,7 +35,7 @@ class Player():
         self.turn_left = False
         self.facing_left = False
         self.dash_angle = 0
-        self.collision_type = {}
+        self.collision_type = {"top": False, "bottom": False, "right": False, "left": False}
         self.idle = False
 
     def collision_test(self, tiles):
@@ -91,6 +92,7 @@ class Player():
         if keys[pygame.K_SPACE] or keys[pygame.K_w]:
             if self.collision_type['bottom']:
                 if time - self.jump_last_update > self.jump_cooldown:
+                    self.jump_sound.play()
                     self.jump = True
                     self.jump_last_update = time
         self.movement = [0,0]

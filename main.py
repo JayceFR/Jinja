@@ -124,14 +124,18 @@ def game_loop(level):
     current_tutorial_text = 0
     speech_cooldown = 5000
     speech_last_update = 0
-
+    #SoundEffects
+    explosion = pygame.mixer.Sound("./Assets/Music/explosion.wav")
+    hit = pygame.mixer.Sound("./Assets/Music/hit.wav")
+    jump = pygame.mixer.Sound("./Assets/Music/jump.wav")
+    pickup = pygame.mixer.Sound("./Assets/Music/pickup.wav")
     #Player
     player_idle_animation = []
     player_run_animation = []
     for x in range(4):
         player_idle_animation.append(get_image(player_idle_img, x, 14, 28, 1.5, (255,255,255)))
         player_run_animation.append(get_image(player_run_img, x, 14, 28, 1.5, (255,255,255)))
-    player = framework.Player(160,50,player_img.get_width(),player_img.get_height(), player_idle_animation, player_run_animation)
+    player = framework.Player(160,50,player_img.get_width(),player_img.get_height(), player_idle_animation, player_run_animation, jump)
     dash = False
     extra_dash = True
     check_for_dash = True
@@ -248,6 +252,7 @@ def game_loop(level):
                 dt = drone.move(scroll, player, time, display, dt)
                 drone.draw(display, scroll)
             else:
+                explosion.play()
                 create_gift(gifts, drone.get_rect().x, -200 , gift_images)
                 drones.pop(pos)
         blit_spikes(spikes, display, scroll, player, time)
@@ -256,6 +261,7 @@ def game_loop(level):
                 dt = polly.move(player, scroll, display, time, dt)
                 polly.draw(display, scroll)
             else:
+                explosion.play()
                 create_gift(gifts, polly.get_rect().x, 0, gift_images)
                 pollies.pop(pos)
 
@@ -265,6 +271,7 @@ def game_loop(level):
                 gift.draw(display, scroll)
                 if level != "game_over.txt":
                     if gift.get_rect().colliderect(player.get_rect()):
+                        pickup.play()
                         for x in range(20):
                             sparks.append(framework.Spark([gift.get_rect().x - scroll[0] + gift.get_width()//2, gift.get_rect().y - scroll[1] + gift.get_height()//2],math.radians(random.randint(0,360)), random.randint(2, 5), gift_particles[gift.get_pos()], 2, 2))
                         gifts.pop(pos)
@@ -342,10 +349,17 @@ def game_loop(level):
                 return 1
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
+                    hit.play()
                     player_attacks.append(list((p_sword.attack(), time, 500)))
             if event.type == pygame.KEYDOWN:
-                if event.key == 107:
+                if event.key == pygame.K_k:
+                    hit.play()
                     player_attacks.append(list((p_sword.attack(), time, 500)))
+                if player.health <= 0:
+                    if event.key == pygame.K_SPACE:
+                        run = False
+        #Blitting Items After Blitting The Player
+        blit_grass(grasses, display, scroll, player)
         #Sparks Blitting
         if sparks != []:
             for i, spark in sorted(enumerate(sparks), reverse=True):
@@ -353,8 +367,7 @@ def game_loop(level):
                 spark.draw(display)
                 if not spark.alive:
                     sparks.pop(i)
-        #Blitting Items After Blitting The Player
-        blit_grass(grasses, display, scroll, player)
+
         #Checking whether player has died
         if level == "tutorial.txt":
             pygame.draw.rect(display, (0,0,0), pygame.rect.Rect(0,200,600,200))
@@ -370,6 +383,8 @@ def game_loop(level):
         else:
             if player.health <=0 :
                 player.alive = False
+                draw_text("Death Is Just The Beginning ", font, (200,0,0), 70, 100, display )
+                draw_text("Space To Restart ", font, (230, 195,105), 130, 150, display)
                 sparks.append(framework.Spark([player.get_rect().x - scroll[0] + player_idle_animation[0].get_width()//2, player.get_rect().y - scroll[1] + player_idle_animation[0].get_height()//2],math.radians(random.randint(0,360)), random.randint(6, 7),(125, 112, 113), 10, 0))
             else:
                 #Checking whether the player has completed the level
@@ -378,13 +393,16 @@ def game_loop(level):
         surf = pygame.transform.scale(display, (s_width, s_height))
         screen.blit(surf, (0,0))
         pygame.display.update()
+    if player.alive == False:
+        return 2
     return 0
 
 def main_loop():
     #0 -> Player has completed the level
     #1 -> Player has closed the Game
-    levels = ["tutorial.txt", "level1.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt", "game_over.txt"]
-    #levels = ["level1.txt"]
+    #2 -> Player has died
+    #levels = ["tutorial.txt", "level1.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt", "game_over.txt"]
+    levels = ["level1.txt"]
     current_level = 0
     #Music
     pygame.mixer.music.load("./Assets/Music/WinjaBgMusic.wav")
@@ -397,5 +415,4 @@ def main_loop():
         if level_done == 1:
             #Player Closed The Game
             current_level = len(levels) + 1
-
 main_loop()
